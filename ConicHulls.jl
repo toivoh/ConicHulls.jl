@@ -9,11 +9,7 @@ using .Primitives
 using .Hulls
 
 
-function hulltype(NC)
-    G = AGen{NC,Int}
-    F = AFacet{NC-1,G}
-    ConicHull{F,G}
-end
+hulltype(NC) = Hulls.hulltype(AGen{NC,Int})
 
 function create_simplex_hull(NC::Int)
     Hulls.create_simplex_hull(hulltype(NC))

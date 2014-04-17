@@ -1,13 +1,46 @@
 module Hulls
 
-export ConicHull
+export ConicHull, hulltype, create_simplex_hull
 
 using ..Common
 using ..Dets
 import ..Common.nconic
 
 
-type ConicHull{F,G}
+# --------------------------------- AFacet -----------------------------------
+
+global numfacets = 0
+
+immutable AFacet{NF,G} <: Facet{NF}
+    generators::Vector{G}
+    links::Vector{AFacet{NF,G}}
+    positive::Bool
+    id::Int
+
+    function AFacet(generators, positive)
+        global numfacets
+        f = new(G[generators...], Array(AFacet{NF,G}, NF), positive, numfacets += 1)
+        @assert length(f.generators) == NF
+        f
+    end    
+end
+
+nconic{NF,G}(::Type{AFacet{NF,G}}) = NF + 1
+
+# Base.show(io::IO, f::AFacet) = print(io, "Facet$(f.id)")
+function Base.show{NF,G}(io::IO, f::AFacet{NF,G})
+    print(io, "Facet$(f.id)(", f.generators, ", [")
+    for (k, nb) in enumerate(f.links)
+        print(io, "Facet$(nb.id)")
+        if k < NF; print(io, ", "); end
+    end
+    print(io, "])");
+end
+
+
+# -------------------------------- ConicHull ---------------------------------
+
+type ConicHull{F<:AFacet,G<:Generator}
     generators::Vector{G}
     facets::Set{F}
     function ConicHull(generators, facets)
@@ -16,6 +49,7 @@ type ConicHull{F,G}
     end
 end
 
+hulltype{G<:Generator}(::Type{G}) = ConicHull{AFacet{nfacet(G),G},G}
 
 ftype{F,G}(::Type{ConicHull{F,G}}) = F
 ftype{F,G}(::ConicHull{F,G})       = F
