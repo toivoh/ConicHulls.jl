@@ -13,8 +13,11 @@ for NC in 3:5
     # @show gs
     # @show fs
 
-    @assert det(gs...) == 1
-    @assert det(gs[[2, 1, (3:NC)...]]...) == -1
+    @assert det(gs...) > 0
+    @assert det(gs[[2, 1, (3:NC)...]]...) == -det(gs...)
+
+    hull = create_simplex_hull(H)
+    verify(hull)
 end
 
 end # module

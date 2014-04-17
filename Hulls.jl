@@ -1,11 +1,16 @@
 module Hulls
 
-export ConicHull, hulltype, create_simplex_hull
+export ConicHull, verify, hulltype, create_simplex_hull
 export ftype, gtype
+export dominates
 
 using ..Common
 using ..Dets
 import ..Common.nconic
+
+
+dot(f::Facet, g::Generator) = det(g, f.generators...)
+dominates(g::Generator, f::Facet) = (dot(f, g) < 0) == f.positive
 
 
 # --------------------------------- AFacet -----------------------------------
@@ -62,6 +67,25 @@ nconic{F,G}(::Type{ConicHull{F,G}}) = nconic(G)
 nconic{F,G}(::ConicHull{F,G})       = nconic(G)
 
 
+function verify(hull::ConicHull)
+    NF = nfacet(hull)
+    for facet in hull.facets
+        if length(Set(facet.links)) != NF
+            error("facet $facet has duplicate neighbors") 
+        end
+        for (nb, vertex) in zip(facet.links, facet.generators)
+            # @assert !is(nb, nothing)
+            if !(nb in hull.facets)
+                error("facet $facet links to facet $nb, which is not in the hull.")
+            end
+            @assert !dominates(vertex, nb)
+            
+            l = indexof(nb.links, facet)
+            @assert !(nb.generators[l] in facet.generators)
+        end
+    end
+end
+
 function create_simplex(NC, F, G)
     gs = [G(1:NC .== k) for k in 1:NC]
     @assert det(gs...) > 0
@@ -81,8 +105,6 @@ end
 function create_simplex_hull{F,G}(H::Type{ConicHull{F,G}})
     NC = nconic(H)
     gs, fs = create_simplex(NC, F, G)
-    @show gs
-    @show fs
     ConicHull{F,G}(gs, fs)
 end
 
