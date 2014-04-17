@@ -1,5 +1,7 @@
 module ConicHulls
 
+export hulltype, create_simplex_hull
+
 include("Common.jl")
 include("Dets.jl")
 include("Primitives.jl")
@@ -9,10 +11,10 @@ using .Primitives
 using .Hulls
 
 
-hulltype(NC) = Hulls.hulltype(AGen{NC,Int})
+Hulls.hulltype(NC) = hulltype(AGen{NC,Int})
 
-function create_simplex_hull(NC::Int)
-    Hulls.create_simplex_hull(hulltype(NC))
+function Hulls.create_simplex_hull(NC::Int)
+    create_simplex_hull(hulltype(NC))
 end
 
 

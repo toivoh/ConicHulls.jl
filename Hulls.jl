@@ -1,6 +1,7 @@
 module Hulls
 
 export ConicHull, hulltype, create_simplex_hull
+export ftype, gtype
 
 using ..Common
 using ..Dets
