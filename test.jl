@@ -4,24 +4,22 @@ module Test
 
 using ConicHulls, ConicHulls.Common, ConicHulls.Dets, ConicHulls.Hulls
 
-for NC in 3:5
-
-    H = hulltype(NC)
-    F, G = ftype(H), gtype(H)
-
+function test(H)
+    NC, F, G = nconic(H), ftype(H), gtype(H)
+        
     gs, fs = Hulls.create_simplex(NC, F, G)
     # @show gs
     # @show fs
-
+        
     @assert det(gs...) > 0
     @assert det(gs[[2, 1, (3:NC)...]]...) == -det(gs...)
     for k=1:NC
         @assert !dominates(gs[1], fs[1])
     end
-
+        
     hull = create_simplex_hull(H)
     verify(hull)
-
+        
     for facet in hull.facets
         x = sum([g.x for g in facet.generators])
         # Check that conic combination of generators is in the hull
@@ -34,6 +32,13 @@ for NC in 3:5
         g_out = G(x_out)
         # @show x_out
         @assert find_dominated_facet(hull, g_out) === facet
+    end
+end
+
+for k=1:2
+    for NC in 3:5
+        H = hulltype(NC)
+        @time test(H)
     end
 end
 
