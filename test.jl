@@ -22,19 +22,18 @@ for NC in 3:5
     hull = create_simplex_hull(H)
     verify(hull)
 
-    for l=1:NC
-        for k=1:l
-            x = gs[k].x + gs[l].x
-            # Check that conic combination of generators is in the hull
-            g_in = G(x) # todo: better / safer way to create new generator?
-            @assert find_dominated_facet(hull, g_in) === nothing
-            # Check that conic combination of surface ray and [-1,-1,...]
-            # is not in the hull (since the latter isn't)
-            x_out = NC*x .- 1
-            g_out = G(NC*x .- 1)
-            # @show x_out
-            @assert !(find_dominated_facet(hull, g_out) === nothing)
-        end
+    for facet in hull.facets
+        x = sum([g.x for g in facet.generators])
+        # Check that conic combination of generators is in the hull
+        g_in = G(x) # todo: better / safer way to create new generator?
+        @assert find_dominated_facet(hull, g_in) === nothing
+        # Check that conic combination of the facet generators minus
+        # the opposing generator dominates the facet (and no other)
+        opposite_g = first(setdiff(Set(hull.generators), Set(facet.generators)))
+        x_out = x - opposite_g.x
+        g_out = G(x_out)
+        # @show x_out
+        @assert find_dominated_facet(hull, g_out) === facet
     end
 end
 
