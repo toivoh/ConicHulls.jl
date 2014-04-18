@@ -3,6 +3,7 @@ module Hulls
 export ConicHull, verify, hulltype, create_simplex_hull
 export ftype, gtype
 export dominates
+export find_dominated_facet
 
 using ..Common
 using ..Dets
@@ -10,7 +11,14 @@ import ..Common.nconic
 
 
 dot(f::Facet, g::Generator) = det(g, f.generators...)
-dominates(g::Generator, f::Facet) = (dot(f, g) < 0) == f.positive
+hassign(x::Number, positive::Bool) = positive ? x > 0 : x < 0
+dominates(g::Generator, f::Facet) = hassign(dot(f, g), !f.positive)
+
+function antidominates_replaced(g::Generator, f::Facet, k::Int, replacement::Generator)
+    gs = copy(f.generators)
+    gs[k] = replacement
+    hassign(det(g, gs...), f.positive)
+end
 
 
 # --------------------------------- AFacet -----------------------------------
@@ -94,6 +102,25 @@ function verify(hull::ConicHull)
             # Check that the opposite generators are different
             @assert (nb.generators[l] != generator)
         end
+    end
+end
+
+function find_dominated_facet(hull::ConicHull, generator::Generator)
+    NF = nfacet(hull)
+    facet = first(hull.facets)
+    primary = first(hull.generators)
+    
+    while true
+        if dominates(generator, facet); return facet; end
+        found = false
+        for k=1:NF
+            if antidominates_replaced(generator, facet, k, primary)
+                facet = facet.links[k]
+                found = true
+                break
+            end
+        end
+        if !found; return nothing; end
     end
 end
 
