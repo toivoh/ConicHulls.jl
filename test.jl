@@ -15,6 +15,9 @@ for NC in 3:5
 
     @assert det(gs...) > 0
     @assert det(gs[[2, 1, (3:NC)...]]...) == -det(gs...)
+    for k=1:NC
+        @assert !dominates(gs[1], fs[1])
+    end
 
     hull = create_simplex_hull(H)
     verify(hull)
