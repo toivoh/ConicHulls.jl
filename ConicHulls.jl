@@ -1,6 +1,6 @@
 module ConicHulls
 
-export hulltype, create_simplex_hull
+export hulltype, create_simplex_hull, add!
 
 include("Common.jl")
 include("Dets.jl")

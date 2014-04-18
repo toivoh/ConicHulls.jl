@@ -1,6 +1,6 @@
 module Hulls
 
-export ConicHull, verify, hulltype, create_simplex_hull
+export ConicHull, verify, hulltype, create_simplex_hull, add!
 export ftype, gtype
 export dominates
 export find_dominated_facet
@@ -27,13 +27,14 @@ global numfacets = 0
 
 immutable AFacet{NF,G} <: Facet{NF}
     generators::Vector{G}
-    links::Vector{AFacet{NF,G}}
+    links::Vector{Union(AFacet{NF,G},Nothing)}
     positive::Bool
     id::Int
 
     function AFacet(generators, positive)
         global numfacets
-        f = new(G[generators...], Array(AFacet{NF,G}, NF), positive, numfacets += 1)
+        f = new(G[generators...], fill!(Array(Union(AFacet{NF,G},Nothing), NF), nothing),
+                                        positive, numfacets += 1)
         @assert length(f.generators) == NF
         f
     end    
@@ -122,6 +123,67 @@ function find_dominated_facet(hull::ConicHull, generator::Generator)
         end
         if !found; return nothing; end
     end
+end
+
+ismarked(hull::ConicHull, facet::Facet) = !(facet in hull.facets) 
+mark!(hull::ConicHull, facet::Facet) = pop!(hull.facets, facet)
+
+function mark_dominated!{F}(newfacets::Vector{(Int,F)}, hull::ConicHull{F}, 
+                            generator::Generator, facet::F)
+    if ismarked(hull, facet); return true; end
+    if !dominates(generator, facet); return false; end
+
+    mark!(hull, facet)
+    for (k, nb) in enumerate(facet.links)
+        if !mark_dominated!(newfacets, hull, generator, nb)
+            # Found border: facet is dominated but not nb
+            generators = copy(facet.generators)
+            generators[k] = generator
+            newfacet = F(generators, facet.positive)::AFacet
+            newfacet.links[k] = nb
+            nb.links[indexof(nb.links, facet)] = newfacet
+            push!(newfacets, (k,newfacet))
+        end
+    end
+    return true
+end
+
+function create_links!(hull::ConicHull, newfacet::Facet, k_external::Int)
+    facet0 = newfacet.links[k_external]
+    g0 = newfacet.generators[k_external]
+    for (k, gen) in enumerate(newfacet.generators)
+        if k == k_external; continue; end
+        if !(newfacet.links[k] === nothing); continue; end
+
+        lastfacet = newfacet
+        gfrom = g0
+        gto = newfacet.generators[k]
+        facet = facet0
+        while !ismarked(hull, facet)
+            gnew = facet.generators[indexof(facet.links, lastfacet)]
+            gto, gfrom = gnew, gto
+            fnew = facet.links[indexof(facet.generators, gfrom)]
+            facet, lastfacet = fnew, facet
+        end
+        
+        newfacet.links[k] = facet
+        facet.links[indexof(facet.generators, gto)] = newfacet
+    end    
+end
+
+function add!{F}(hull::ConicHull{F}, generator::Generator)
+    dominated = find_dominated_facet(hull, generator)
+    if dominated === nothing; return false; end
+
+    push!(hull.generators, generator)
+
+    newfacets = Array((Int,F),0)
+    mark_dominated!(newfacets, hull, generator, dominated)
+    
+    for (k,facet) in newfacets; create_links!(hull, facet, k); end
+    for (k,facet) in newfacets; push!(hull.facets, facet); end
+
+    return true
 end
 
 function create_simplex(NC, F, G)

@@ -4,6 +4,13 @@ module Test
 
 using ConicHulls, ConicHulls.Common, ConicHulls.Dets, ConicHulls.Hulls
 
+function printhull(hull::ConicHull)
+    println("ConicHull:")
+    for facet in hull.facets
+        println("  ", facet)
+    end
+end
+
 function test(H)
     NC, F, G = nconic(H), ftype(H), gtype(H)
         
@@ -33,6 +40,13 @@ function test(H)
         # @show x_out
         @assert find_dominated_facet(hull, g_out) === facet
     end
+
+    g = G([-1, fill(1, NC-1)...])
+#    printhull(hull)
+#    println(g)
+    @assert add!(hull, g)
+    verify(hull)
+#    printhull(hull)
 end
 
 for k=1:2
