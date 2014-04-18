@@ -70,18 +70,29 @@ nconic{F,G}(::ConicHull{F,G})       = nconic(G)
 function verify(hull::ConicHull)
     NF = nfacet(hull)
     for facet in hull.facets
+        @assert length(facet.links) == length(facet.generators) == NF
         if length(Set(facet.links)) != NF
             error("facet $facet has duplicate neighbors") 
         end
-        for (nb, vertex) in zip(facet.links, facet.generators)
+        if length(Set(facet.generators)) != NF
+            error("facet $facet has duplicate generators") 
+        end
+        for (nb, generator) in zip(facet.links, facet.generators)
             # @assert !is(nb, nothing)
             if !(nb in hull.facets)
                 error("facet $facet links to facet $nb, which is not in the hull.")
             end
-            @assert !dominates(vertex, nb)
+            # Check that neighbor is not dominated by the opposing generator
+            @assert !dominates(generator, nb)
             
+            # Check that there is a link back
             l = indexof(nb.links, facet)
-            @assert !(nb.generators[l] in facet.generators)
+            # Check that the linked facets have all generators in common except the opposite ones
+            link_gs = Set(facet.generators); pop!(link_gs, generator)
+            link_nb_gs = Set(except_index(nb.generators, l));
+            @assert link_gs == link_nb_gs
+            # Check that the opposite generators are different
+            @assert (nb.generators[l] != generator)
         end
     end
 end
