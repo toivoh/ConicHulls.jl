@@ -3,6 +3,7 @@ module Hulls
 export ConicHull, verify, hulltype, create_simplex_hull, add!
 export ftype, gtype
 export dominates
+export facesof
 export find_dominated_facet
 
 using ..Common
@@ -10,17 +11,6 @@ using ..Dets
 import ..Common.nconic
 
 import ..Common.indexof
-
-
-dot(f::Facet, g::Generator) = det(g, f.generators...)
-hassign(x::Number, positive::Bool) = positive ? x > 0 : x < 0
-dominates(g::Generator, f::Facet) = hassign(dot(f, g), !f.positive)
-
-function antidominates_replaced(g::Generator, f::Facet, k::Int, replacement::Generator)
-    gs = copy(f.generators)
-    gs[k] = replacement
-    hassign(det(g, gs...), f.positive)
-end
 
 
 # --------------------------------- AFacet -----------------------------------
@@ -62,6 +52,49 @@ opposite{NF,G}(f::AFacet{NF,G}, g::G) = f.links[     indexof(f, g)]
 replace_link!{F<:AFacet}(f::F, new_link::F, link::F) = (f.links[indexof(f, link)] = new_link)
 function set_opposite!{NF,G}(f::AFacet{NF,G}, new_link::AFacet{NF,G}, g::G)
     f.links[indexof(f, g)] = new_link
+end
+
+
+# ---------------------------------- Face ------------------------------------
+
+immutable Face{F<:Facet}
+    parent::F
+    k::Int
+end
+Face{F<:Facet}(parent::F, nb::F) = Face{F}(parent, indexof(parent, nb))
+Face{F<:Facet}(parent::F, g::Generator) = Face{F}(parent, indexof(parent, g))
+
+parentof(f::Face) = f.parent
+nbof(f::Face)     = f.parent.links[f.k]
+opposite(f::Face) = f.parent.generators[f.k]
+flip(f::Face)     = (nb = nbof(f); Face(nb, indexof(nb, f)))
+
+set_nb!{F}(f::Face{F}, newnb::F) = (f.parent.links[f.k] = newnb)
+
+
+# ---------------------------------- Faces -----------------------------------
+
+immutable Faces{F<:Facet}; parent::F; end
+
+Base.length{F}(faces::Faces{F}) = nfacet(F)
+Base.start(faces::Faces) = 1
+Base.next{F}(faces::Faces{F}, k) = (Face{F}(faces.parent, k), k+1)
+Base.done{F}(faces::Faces{F}, k) = k == (nfacet(F)+1)
+Base.eltype{F}(faces::Faces{F}) = Face{F}
+
+facesof(f::Facet) = Faces(f)
+
+
+# -------------------------------- Dominance ---------------------------------
+
+dot(f::Facet, g::Generator) = det(g, f.generators...)
+hassign(x::Number, positive::Bool) = positive ? x > 0 : x < 0
+dominates(g::Generator, f::Facet) = hassign(dot(f, g), !f.positive)
+
+function antidominates_replaced(g::Generator, face::Face, replacement::Generator)
+    gs = copy(face.parent.generators)
+    gs[face.k] = replacement
+    hassign(det(g, gs...), face.parent.positive)
 end
 
 
@@ -126,9 +159,9 @@ function find_dominated_facet(hull::ConicHull, generator::Generator)
     while true
         if dominates(generator, facet); return facet; end
         found = false
-        for k=1:NF
-            if antidominates_replaced(generator, facet, k, primary)
-                facet = facet.links[k]
+        for face in facesof(facet)
+            if antidominates_replaced(generator, face, primary)
+                facet = nbof(face)
                 found = true
                 break
             end
