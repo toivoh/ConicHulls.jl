@@ -199,13 +199,13 @@ end
 
 function create_links!(hull::ConicHull, newfacet::Facet, generator::Generator)
     facet0 = opposite(newfacet, generator)
-    for (k, gen) in enumerate(newfacet.generators)
+    for (face, gen) in zip(facesof(newfacet), newfacet.generators)
         if gen == generator; continue; end
-        if !(newfacet.links[k] === nothing); continue; end
+        if !(nbof(face) === nothing); continue; end
 
         lastfacet = newfacet
         gfrom = generator
-        gto = newfacet.generators[k]
+        gto = opposite(face)
         facet = facet0
         while !ismarked(hull, facet)
             gnew = opposite(facet, lastfacet)
@@ -214,7 +214,7 @@ function create_links!(hull::ConicHull, newfacet::Facet, generator::Generator)
             facet, lastfacet = fnew, facet
         end
         
-        newfacet.links[k] = facet
+        set_nb!(face, facet)
         set_opposite!(facet, newfacet, gto)
     end    
 end
