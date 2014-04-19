@@ -140,7 +140,7 @@ end
 ismarked(hull::ConicHull, facet::Facet) = !(facet in hull.facets) 
 mark!(hull::ConicHull, facet::Facet) = pop!(hull.facets, facet)
 
-function mark_dominated!{F}(newfacets::Vector{(Int,F)}, hull::ConicHull{F}, 
+function mark_dominated!{F}(newfacets::Vector{F}, hull::ConicHull{F}, 
                             generator::Generator, facet::F)
     if ismarked(hull, facet); return true; end
     if !dominates(generator, facet); return false; end
@@ -152,23 +152,22 @@ function mark_dominated!{F}(newfacets::Vector{(Int,F)}, hull::ConicHull{F},
             generators = copy(facet.generators)
             generators[k] = generator
             newfacet = F(generators, facet.positive)::AFacet
-            newfacet.links[k] = nb
+            set_opposite!(newfacet, nb, generator)
             replace_link!(nb, newfacet, facet)
-            push!(newfacets, (k,newfacet))
+            push!(newfacets, newfacet)
         end
     end
     return true
 end
 
-function create_links!(hull::ConicHull, newfacet::Facet, k_external::Int)
-    facet0 = newfacet.links[k_external]
-    g0 = newfacet.generators[k_external]
+function create_links!(hull::ConicHull, newfacet::Facet, generator::Generator)
+    facet0 = opposite(newfacet, generator)
     for (k, gen) in enumerate(newfacet.generators)
-        if k == k_external; continue; end
+        if gen == generator; continue; end
         if !(newfacet.links[k] === nothing); continue; end
 
         lastfacet = newfacet
-        gfrom = g0
+        gfrom = generator
         gto = newfacet.generators[k]
         facet = facet0
         while !ismarked(hull, facet)
@@ -189,11 +188,11 @@ function add!{F}(hull::ConicHull{F}, generator::Generator)
 
     push!(hull.generators, generator)
 
-    newfacets = Array((Int,F),0)
+    newfacets = F[]
     mark_dominated!(newfacets, hull, generator, dominated)
     
-    for (k,facet) in newfacets; create_links!(hull, facet, k); end
-    for (k,facet) in newfacets; push!(hull.facets, facet); end
+    for facet in newfacets; create_links!(hull, facet, generator); end
+    for facet in newfacets; push!(hull.facets, facet); end
 
     return true
 end
