@@ -9,6 +9,8 @@ using ..Common
 using ..Dets
 import ..Common.nconic
 
+import ..Common.indexof
+
 
 dot(f::Facet, g::Generator) = det(g, f.generators...)
 hassign(x::Number, positive::Bool) = positive ? x > 0 : x < 0
@@ -50,6 +52,16 @@ function Base.show{NF,G}(io::IO, f::AFacet{NF,G})
         if k < NF; print(io, ", "); end
     end
     print(io, "])");
+end
+
+indexof{F<:AFacet}(f::F, link::F)    = indexof(f.links, link)
+indexof{NF,G}(f::AFacet{NF,G}, g::G) = indexof(f.generators, g)
+
+opposite{F<:AFacet}(f::F, link::F)    = f.generators[indexof(f, link)]
+opposite{NF,G}(f::AFacet{NF,G}, g::G) = f.links[     indexof(f, g)]
+replace_link!{F<:AFacet}(f::F, new_link::F, link::F) = (f.links[indexof(f, link)] = new_link)
+function set_opposite!{NF,G}(f::AFacet{NF,G}, new_link::AFacet{NF,G}, g::G)
+    f.links[indexof(f, g)] = new_link
 end
 
 
@@ -95,13 +107,13 @@ function verify(hull::ConicHull)
             @assert !dominates(generator, nb)
             
             # Check that there is a link back
-            l = indexof(nb.links, facet)
+            nb_g = opposite(nb, facet)
             # Check that the linked facets have all generators in common except the opposite ones
             link_gs = Set(facet.generators); pop!(link_gs, generator)
-            link_nb_gs = Set(except_index(nb.generators, l));
+            link_nb_gs = Set(nb.generators); pop!(link_nb_gs, nb_g)
             @assert link_gs == link_nb_gs
             # Check that the opposite generators are different
-            @assert (nb.generators[l] != generator)
+            @assert nb_g != generator
         end
     end
 end
@@ -141,7 +153,7 @@ function mark_dominated!{F}(newfacets::Vector{(Int,F)}, hull::ConicHull{F},
             generators[k] = generator
             newfacet = F(generators, facet.positive)::AFacet
             newfacet.links[k] = nb
-            nb.links[indexof(nb.links, facet)] = newfacet
+            replace_link!(nb, newfacet, facet)
             push!(newfacets, (k,newfacet))
         end
     end
@@ -160,14 +172,14 @@ function create_links!(hull::ConicHull, newfacet::Facet, k_external::Int)
         gto = newfacet.generators[k]
         facet = facet0
         while !ismarked(hull, facet)
-            gnew = facet.generators[indexof(facet.links, lastfacet)]
+            gnew = opposite(facet, lastfacet)
             gto, gfrom = gnew, gto
-            fnew = facet.links[indexof(facet.generators, gfrom)]
+            fnew = opposite(facet, gfrom)
             facet, lastfacet = fnew, facet
         end
         
         newfacet.links[k] = facet
-        facet.links[indexof(facet.generators, gto)] = newfacet
+        set_opposite!(facet, newfacet, gto)
     end    
 end
 
