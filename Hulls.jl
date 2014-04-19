@@ -13,48 +13,6 @@ import ..Common.nconic
 import ..Common.indexof
 
 
-# --------------------------------- AFacet -----------------------------------
-
-global numfacets = 0
-
-immutable AFacet{NF,G} <: Facet{NF}
-    generators::Vector{G}
-    links::Vector{Union(AFacet{NF,G},Nothing)}
-    positive::Bool
-    id::Int
-
-    function AFacet(generators, positive)
-        global numfacets
-        f = new(G[generators...], fill!(Array(Union(AFacet{NF,G},Nothing), NF), nothing),
-                                        positive, numfacets += 1)
-        @assert length(f.generators) == NF
-        f
-    end    
-end
-
-nconic{NF,G}(::Type{AFacet{NF,G}}) = NF + 1
-
-# Base.show(io::IO, f::AFacet) = print(io, "Facet$(f.id)")
-function Base.show{NF,G}(io::IO, f::AFacet{NF,G})
-    print(io, "Facet$(f.id)(", f.generators, ", [")
-    for (k, nb) in enumerate(f.links)
-        print(io, "Facet$(nb.id)")
-        if k < NF; print(io, ", "); end
-    end
-    print(io, "])");
-end
-
-indexof{F<:AFacet}(f::F, link::F)    = indexof(f.links, link)
-indexof{NF,G}(f::AFacet{NF,G}, g::G) = indexof(f.generators, g)
-
-opposite{F<:AFacet}(f::F, link::F)    = f.generators[indexof(f, link)]
-opposite{NF,G}(f::AFacet{NF,G}, g::G) = f.links[     indexof(f, g)]
-replace_link!{F<:AFacet}(f::F, new_link::F, link::F) = (f.links[indexof(f, link)] = new_link)
-function set_opposite!{NF,G}(f::AFacet{NF,G}, new_link::AFacet{NF,G}, g::G)
-    f.links[indexof(f, g)] = new_link
-end
-
-
 # ---------------------------------- Face ------------------------------------
 
 immutable Face{F<:Facet}
@@ -83,6 +41,54 @@ Base.done{F}(faces::Faces{F}, k) = k == (nfacet(F)+1)
 Base.eltype{F}(faces::Faces{F}) = Face{F}
 
 facesof(f::Facet) = Faces(f)
+
+
+# --------------------------------- AFacet -----------------------------------
+
+global numfacets = 0
+
+immutable AFacet{NF,G} <: Facet{NF}
+    generators::Vector{G}
+    links::Vector{Union(AFacet{NF,G},Nothing)}
+    positive::Bool
+    id::Int
+
+    function AFacet(generators, positive)
+        global numfacets
+        f = new(G[generators...], fill!(Array(Union(AFacet{NF,G},Nothing), NF), nothing),
+                                        positive, numfacets += 1)
+        @assert length(f.generators) == NF
+        f
+    end    
+end
+function AFacet{F<:AFacet}(face::Face{F}, generator::Generator)
+    facet = face.parent
+    generators = copy(facet.generators)
+    generators[face.k] = generator
+    F(generators, facet.positive)
+end
+
+nconic{NF,G}(::Type{AFacet{NF,G}}) = NF + 1
+
+# Base.show(io::IO, f::AFacet) = print(io, "Facet$(f.id)")
+function Base.show{NF,G}(io::IO, f::AFacet{NF,G})
+    print(io, "Facet$(f.id)(", f.generators, ", [")
+    for (k, nb) in enumerate(f.links)
+        print(io, "Facet$(nb.id)")
+        if k < NF; print(io, ", "); end
+    end
+    print(io, "])");
+end
+
+indexof{F<:AFacet}(f::F, link::F)    = indexof(f.links, link)
+indexof{NF,G}(f::AFacet{NF,G}, g::G) = indexof(f.generators, g)
+
+opposite{F<:AFacet}(f::F, link::F)    = f.generators[indexof(f, link)]
+opposite{NF,G}(f::AFacet{NF,G}, g::G) = f.links[     indexof(f, g)]
+replace_link!{F<:AFacet}(f::F, new_link::F, link::F) = (f.links[indexof(f, link)] = new_link)
+function set_opposite!{NF,G}(f::AFacet{NF,G}, new_link::AFacet{NF,G}, g::G)
+    f.links[indexof(f, g)] = new_link
+end
 
 
 # -------------------------------- Dominance ---------------------------------
@@ -179,12 +185,10 @@ function mark_dominated!{F}(newfacets::Vector{F}, hull::ConicHull{F},
     if !dominates(generator, facet); return false; end
 
     mark!(hull, facet)
-    for (k, nb) in enumerate(facet.links)
+    for (face, nb) in zip(facesof(facet), facet.links)
         if !mark_dominated!(newfacets, hull, generator, nb)
             # Found border: facet is dominated but not nb
-            generators = copy(facet.generators)
-            generators[k] = generator
-            newfacet = F(generators, facet.positive)::AFacet
+            newfacet = AFacet(face, generator)
             set_opposite!(newfacet, nb, generator)
             replace_link!(nb, newfacet, facet)
             push!(newfacets, newfacet)
