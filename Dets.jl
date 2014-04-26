@@ -45,7 +45,20 @@ function code_det_kernel(A::Matrix, sdname::String)
     code, subdets
 end
 
-# ---- det(rows...) ----
+function incomplete_det_components(n::Int, subdets::Vector)
+    ds = {}
+    for k=1:n
+        d = subdets[(1<<n)-1-(1<<(k-1))]
+        if isodd(n-k);  d = :(-$d); end
+        push!(ds, d)
+    end
+    ds
+end
+
+
+incomplete_det() = [1]
+
+# ---- det(rows...), incomplete_det(rows...) ----
 for NC = 1:8
     generators = [symbol("v$k") for k in 1:NC]
 #    args = [:($generator::Generator{$NC}) for generator in generators]
@@ -58,6 +71,16 @@ for NC = 1:8
     @eval function det($(args...))
         $(code...)
         $d        
+    end
+
+    if NC > 1
+        code, ds = code_det_kernel(A[:,1:(end-1)], "d")
+        ds = incomplete_det_components(NC, ds)
+        iargs = args[1:(end-1)]
+        @eval function incomplete_det($(iargs...))
+            $(code...)
+            [$(ds...)]
+        end
     end
 end
 
