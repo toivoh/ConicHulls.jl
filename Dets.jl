@@ -7,8 +7,9 @@ using ..Common.Generator
 
 code_det_kernel(A::Matrix) = code_det_kernel(A, "subdet")
 function code_det_kernel(A::Matrix, sdname::String)
-    n = size(A,1)
-    @assert n == size(A,2)
+    n, m = size(A)
+    @assert m <= n
+    @assert m >= 1
 
     code = {}
     N = 1<<n
@@ -21,7 +22,7 @@ function code_det_kernel(A::Matrix, sdname::String)
     for i=1:n;   subdets[1<<(i-1)] = A[i,1];  end    
     for mask = 1:(N-1)
         j = count_ones(mask)
-        if j < 2; continue; end
+        if j < 2 || j > m; continue; end
 
         terms = {}
         negate = false
@@ -41,7 +42,7 @@ function code_det_kernel(A::Matrix, sdname::String)
         push!(code, :($(subdets[mask]) = +($(terms...))))
     end    
 
-    code, subdets[end]
+    code, subdets
 end
 
 # ---- det(rows...) ----
@@ -51,7 +52,8 @@ for NC = 1:8
     args = [:($generator) for generator in generators]
 
     A  = [ :($generator[$i]) for i=1:NC, generator in generators ]
-    code, d = code_det_kernel(A, "d")    
+    code, ds = code_det_kernel(A, "d")
+    d = ds[end]
 
     @eval function det($(args...))
         $(code...)
