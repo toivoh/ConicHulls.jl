@@ -44,10 +44,11 @@ function code_det_kernel(A::Matrix, sdname::String)
     code, subdets[end]
 end
 
-# ---- det(vertices::Vertex...) ----
+# ---- det(rows...) ----
 for NC = 1:8
     generators = [symbol("v$k") for k in 1:NC]
-    args = [:($generator::Generator{$NC}) for generator in generators]
+#    args = [:($generator::Generator{$NC}) for generator in generators]
+    args = [:($generator) for generator in generators]
 
     A  = [ :($generator[$i]) for i=1:NC, generator in generators ]
     code, d = code_det_kernel(A, "d")    
