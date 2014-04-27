@@ -1,13 +1,34 @@
 include("ConicHulls.jl")
+include("RefHull.jl")
 
 module Test
 
 using ConicHulls, ConicHulls.Common, ConicHulls.Dets, ConicHulls.Hulls
+using RefHull
 
 function printhull(hull::ConicHull)
     println("ConicHull:")
     for facet in hull.facets
         println("  ", facet)
+    end
+end
+
+function verify_hull(hull::ConicHull, generators::Vector) 
+    validate(hull)
+
+    gmap = [g.x => g for g in generators]
+    generators = [g.x for g in generators]
+    generators, facets = RefHull.conichull(nconic(hull), generators)
+
+    @assert length(hull.facets) == length(facets)
+    facetset = Set()
+    for facet in facets
+        push!(facetset, tuple([gmap[g] for g in facet.generators]..., facet.positive))
+    end
+    for facet in hull.facets
+        gs, even = get_canonical_winding(facet)
+        key = tuple(gs..., even)
+        @assert key in facetset
     end
 end
 
@@ -25,8 +46,9 @@ function test(H)
     end
         
     hull = create_simplex_hull(H)
+    gs = copy(hull.generators)
     verify(hull)
-    validate(hull)
+    verify_hull(hull, gs)
         
     for facet in hull.facets
         x = sum([g.x for g in facet.generators])
@@ -47,7 +69,9 @@ function test(H)
 #    println(g)
     @assert add!(hull, g)
     verify(hull)
-    validate(hull)
+
+    push!(gs, g)
+    verify_hull(hull, gs)
 #    printhull(hull)
 end
 
