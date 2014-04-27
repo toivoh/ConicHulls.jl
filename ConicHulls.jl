@@ -1,12 +1,15 @@
 module ConicHulls
 
+export Facet
 export hulltype, create_simplex_hull, add!
 
 include("Common.jl")
 include("Dets.jl")
 include("Primitives.jl")
+include("Verify.jl")
 include("Hulls.jl")
 
+using .Common
 using .Primitives
 using .Hulls
 

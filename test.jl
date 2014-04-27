@@ -26,6 +26,7 @@ function test(H)
         
     hull = create_simplex_hull(H)
     verify(hull)
+    validate(hull)
         
     for facet in hull.facets
         x = sum([g.x for g in facet.generators])
@@ -46,6 +47,7 @@ function test(H)
 #    println(g)
     @assert add!(hull, g)
     verify(hull)
+    validate(hull)
 #    printhull(hull)
 end
 

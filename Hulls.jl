@@ -1,14 +1,15 @@
 module Hulls
 
-export ConicHull, verify, hulltype, create_simplex_hull, add!
-export ftype, gtype
+export ConicHull, verify, validate, hulltype, create_simplex_hull, add!
+export ftype
 export dominates
 export facesof
 export find_dominated_facet
 
 using ..Common
 using ..Dets
-import ..Common.nconic
+using ..Verify
+import ..Common: nconic, gtype, get_canonical_winding
 
 import ..Common.indexof
 
@@ -69,6 +70,7 @@ function AFacet{F<:AFacet}(face::Face{F}, generator::Generator)
 end
 
 nconic{NF,G}(::Type{AFacet{NF,G}}) = NF + 1
+gtype{NF,G}( ::Type{AFacet{NF,G}}) = G
 
 # Base.show(io::IO, f::AFacet) = print(io, "Facet$(f.id)")
 function Base.show{NF,G}(io::IO, f::AFacet{NF,G})
@@ -88,6 +90,13 @@ opposite{NF,G}(f::AFacet{NF,G}, g::G) = f.links[     indexof(f, g)]
 replace_link!{F<:AFacet}(f::F, new_link::F, link::F) = (f.links[indexof(f, link)] = new_link)
 function set_opposite!{NF,G}(f::AFacet{NF,G}, new_link::AFacet{NF,G}, g::G)
     f.links[indexof(f, g)] = new_link
+end
+
+function get_canonical_winding(facet::AFacet)
+    perm = sortperm(facet.generators, by=g->g.id)
+    generators = facet.generators[perm]
+    even = facet.positive $ isoddperm(perm)
+    (generators, even)
 end
 
 
@@ -153,6 +162,15 @@ function verify(hull::ConicHull)
             @assert link_gs == link_nb_gs
             # Check that the opposite generators are different
             @assert nb_g != generator
+        end
+    end
+end
+
+function validate{F}(hull::ConicHull{F})
+    links = create_nb_dict(F, hull.facets)
+    for facet in hull.facets
+        for (g,nb) in zip(facet.generators, facet.links)
+            @assert nb === get_nb(links, facet, g)
         end
     end
 end
