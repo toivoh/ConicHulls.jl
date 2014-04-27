@@ -102,14 +102,14 @@ end
 
 # -------------------------------- Dominance ---------------------------------
 
-dot(f::Facet, g::Generator) = det(g, f.generators...)
+dot(f::Facet, g::Generator) = det(f.generators..., g)
 hassign(x::Number, positive::Bool) = positive ? x > 0 : x < 0
-dominates(g::Generator, f::Facet) = hassign(dot(f, g), !f.positive)
+dominates(g::Generator, f::Facet) = hassign(dot(f, g), f.positive)
 
 function antidominates_replaced(g::Generator, face::Face, replacement::Generator)
     gs = copy(face.parent.generators)
     gs[face.k] = replacement
-    hassign(det(g, gs...), face.parent.positive)
+    hassign(det(gs..., g), !face.parent.positive)
 end
 
 
@@ -256,7 +256,7 @@ function create_simplex(NC, F, G)
     gs = [G(1:NC .== k) for k in 1:NC]
     @assert det(gs...) > 0
 
-    fs = F[F(except_index(gs, kf), isodd(kf)) for kf in 1:NC]
+    fs = F[F(except_index(gs, kf), isodd(NC-kf)) for kf in 1:NC]
 
     for (kf, f) in enumerate(fs)
         links = except_index([1:NC...], kf)
