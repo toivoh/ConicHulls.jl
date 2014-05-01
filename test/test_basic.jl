@@ -1,5 +1,5 @@
-include("ConicHulls.jl")
-include("RefHull.jl")
+include("../src/ConicHulls.jl")
+include("../src/RefHull.jl")
 
 module Test
 
