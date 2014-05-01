@@ -1,6 +1,4 @@
-include("../src/ConicHulls.jl")
-
-module Test
+module TestBasic
 
 using ConicHulls, ConicHulls.Common, ConicHulls.Dets, ConicHulls.Hulls
 using ConicHulls.RefHull
