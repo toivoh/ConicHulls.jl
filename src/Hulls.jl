@@ -105,6 +105,7 @@ end
 dot(f::Facet, g::Generator) = det(f.generators..., g)
 hassign(x::Number, positive::Bool) = positive ? x > 0 : x < 0
 dominates(g::Generator, f::Facet) = hassign(dot(f, g), f.positive)
+antidominates(g::Generator, f::Facet) = hassign(dot(f, g), !f.positive)
 
 function antidominates_replaced(g::Generator, face::Face, replacement::Generator)
     gs = copy(face.parent.generators)
@@ -200,12 +201,12 @@ mark!(hull::ConicHull, facet::Facet) = pop!(hull.facets, facet)
 function mark_dominated!{F}(newfacets::Vector{F}, hull::ConicHull{F}, 
                             generator::Generator, facet::F)
     if ismarked(hull, facet); return true; end
-    if !dominates(generator, facet); return false; end
+    if antidominates(generator, facet); return false; end
 
     mark!(hull, facet)
     for (face, nb) in zip(facesof(facet), facet.links)
         if !mark_dominated!(newfacets, hull, generator, nb)
-            # Found border: facet is dominated but not nb
+            # Found border: facet is (weakly) dominated but not nb
             newfacet = AFacet(face, generator)
             set_opposite!(newfacet, nb, generator)
             replace_link!(nb, newfacet, facet)
