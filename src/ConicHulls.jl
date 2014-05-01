@@ -8,6 +8,7 @@ include("Dets.jl")
 include("Primitives.jl")
 include("Verify.jl")
 include("Hulls.jl")
+include("RefHull.jl")
 
 using .Common
 using .Primitives

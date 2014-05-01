@@ -1,10 +1,9 @@
 include("../src/ConicHulls.jl")
-include("../src/RefHull.jl")
 
 module Test
 
 using ConicHulls, ConicHulls.Common, ConicHulls.Dets, ConicHulls.Hulls
-using RefHull
+using ConicHulls.RefHull
 
 function printhull(hull::ConicHull)
     println("ConicHull:")
