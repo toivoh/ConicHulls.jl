@@ -1,4 +1,5 @@
 module RefHull
+export verify_hull
 
 using ConicHulls.Dets.incomplete_det
 
@@ -16,7 +17,7 @@ function eliminate_duplicates{T<:Integer}(generators::Vector{Vector{T}})
     gs
 end
 
-type Facet{T}
+type SortedFacet{T}
     generators::Vector{Vector{T}}
     positive::Bool
     plane::Vector{T}
@@ -25,7 +26,7 @@ end
 function enumerate_planes{T}(NC::Int, generators::Vector{Vector{T}})
     NF = NC - 1
     extreme = ObjectIdDict()
-    facets = Facet{T}[]
+    facets = SortedFacet{T}[]
     for ks in combinations(1:length(generators), NF)
         gs = generators[ks]
         plane = incomplete_det(gs...)
@@ -48,7 +49,7 @@ function enumerate_planes{T}(NC::Int, generators::Vector{Vector{T}})
             error("Generators do not span the the space")
         end
         if npos == 0 || nneg == 0
-            push!(facets, Facet(gs, npos == 0, plane))
+            push!(facets, SortedFacet(gs, npos == 0, plane))
         end
     end
     # Filter out non-extreme generators
@@ -57,7 +58,7 @@ function enumerate_planes{T}(NC::Int, generators::Vector{Vector{T}})
         if haskey(extreme, g); push!(gs, g); end
     end
     # Filter out facets with non-extreme generators
-    fs = Facet{T}[]
+    fs = SortedFacet{T}[]
     for facet in facets
         if all([haskey(extreme, g) for g in facet.generators])
             push!(fs, facet)
@@ -66,12 +67,12 @@ function enumerate_planes{T}(NC::Int, generators::Vector{Vector{T}})
     gs, fs
 end
 
-function filter_coplanar_facets{T}(generators::Vector{Vector{T}}, facets::Vector{Facet{T}})
+function filter_coplanar_facets{T}(generators::Vector{Vector{T}}, facets::Vector{SortedFacet{T}})
     NC = length(generators[1])
     order = ObjectIdDict()
     for (k,g) in enumerate(generators); order[g] = k; end
 
-    fs = Facet{T}[]
+    fs = SortedFacet{T}[]
     for facet in facets
         j = find(first(facet.plane .!= 0))
         dominated = false
@@ -117,5 +118,25 @@ function conichull{T<:Integer}(NC::Int, generators::Vector{Vector{T}})
     generators, facets
 end
 
+using ConicHulls: Common, Hulls
+
+function verify_hull(hull::ConicHull, generators::Vector) 
+    validate(hull)
+
+    gmap = [g.x => g for g in generators]
+    generators = [g.x for g in generators]
+    generators, facets = RefHull.conichull(nconic(hull), generators)
+
+    @assert length(hull.facets) == length(facets)
+    facetset = Set()
+    for facet in facets
+        push!(facetset, tuple([gmap[g] for g in facet.generators]..., facet.positive))
+    end
+    for facet in hull.facets
+        gs, even = get_canonical_winding(facet)
+        key = tuple(gs..., even)
+        @assert key in facetset
+    end
+end
 
 end # module

@@ -10,25 +10,6 @@ function printhull(hull::ConicHull)
     end
 end
 
-function verify_hull(hull::ConicHull, generators::Vector) 
-    validate(hull)
-
-    gmap = [g.x => g for g in generators]
-    generators = [g.x for g in generators]
-    generators, facets = RefHull.conichull(nconic(hull), generators)
-
-    @assert length(hull.facets) == length(facets)
-    facetset = Set()
-    for facet in facets
-        push!(facetset, tuple([gmap[g] for g in facet.generators]..., facet.positive))
-    end
-    for facet in hull.facets
-        gs, even = get_canonical_winding(facet)
-        key = tuple(gs..., even)
-        @assert key in facetset
-    end
-end
-
 function test(H)
     NC, F, G = nconic(H), ftype(H), gtype(H)
         
