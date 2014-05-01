@@ -178,9 +178,12 @@ end
 
 function find_dominated_facet(hull::ConicHull, generator::Generator)
     NF = nfacet(hull)
-    facet = first(hull.facets)
     primary = first(hull.generators)
-    
+    facet = first(hull.facets)
+    # If generator is in the plane of the facet and it contains the primary,
+    # the search loop won't escape the facet.
+    if primary in facet.generators; facet = opposite(facet, primary); end
+
     while true
         if dominates(generator, facet); return facet; end
         found = false
