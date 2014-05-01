@@ -1,7 +1,7 @@
 module ConicHulls
 
-export Facet
-export hulltype, create_simplex_hull, add!
+export Facet, nconic, nface, ftype, gtype
+export hulltype, create_simplex_hull, add!, verify
 
 include("Common.jl")
 include("Dets.jl")
