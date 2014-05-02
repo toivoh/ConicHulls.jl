@@ -178,11 +178,20 @@ end
 
 function find_dominated_facet(hull::ConicHull, generator::Generator)
     NF = nfacet(hull)
-    primary = first(hull.generators)
+
+    # Make sure that the primary is not in the plane of the facet;
+    # if the generator also is it will be unable to escape.
+    # todo: more efficient way to find a primary generator and starting facet
+    # that span a volume
     facet = first(hull.facets)
-    # If generator is in the plane of the facet and it contains the primary,
-    # the search loop won't escape the facet.
-    if primary in facet.generators; facet = opposite(facet, primary); end
+    primary = facet.generators[1] # get a primary that is extreme
+    for f in hull.facets
+        if dot(f, primary) != 0
+            facet = f
+            break
+        end
+    end
+    @assert dot(facet, primary) != 0
 
     while true
         if dominates(generator, facet); return facet; end
