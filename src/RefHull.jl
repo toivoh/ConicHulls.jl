@@ -121,21 +121,38 @@ end
 using ConicHulls: Common, Hulls
 
 function verify_hull(hull::ConicHull, generators::Vector) 
+    orig_generators = generators
     validate(hull)
 
-    gmap = [g.x => g for g in generators]
+    gmap = ObjectIdDict()
+    for g in generators; gmap[g.x] = g; end
     generators = [g.x for g in generators]
     generators, facets = RefHull.conichull(nconic(hull), generators)
 
-    @assert length(hull.facets) == length(facets)
-    facetset = Set()
-    for facet in facets
-        push!(facetset, tuple([gmap[g] for g in facet.generators]..., facet.positive))
-    end
-    for facet in hull.facets
-        gs, even = get_canonical_winding(facet)
-        key = tuple(gs..., even)
-        @assert key in facetset
+    try
+        @assert length(hull.facets) == length(facets)
+        facetset = Set()
+        for facet in facets
+            push!(facetset, tuple([gmap[g] for g in facet.generators]..., facet.positive))
+        end
+        for facet in hull.facets
+            gs, even = get_canonical_winding(facet)
+            key = tuple(gs..., even)
+            @assert key in facetset
+        end
+    catch e
+        @show length(hull.facets), length(facets)
+
+        println("hull.facets:")
+        for facet in hull.facets; println("  ", facet.generators); end
+        println("facets:")
+        for facet in facets; println("  ", [gmap[g] for g in facet.generators]); end
+        println("generators:")
+        for g in orig_generators; println("  ", g, ": ", g.x); end
+        println("filtered generators:")
+        for g in generators; println("  ", gmap[g]); end
+
+        rethrow(e)
     end
 end
 
