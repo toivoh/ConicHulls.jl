@@ -26,7 +26,7 @@ end
 srand(673826715664)
 for NC in 3:5
     H = hulltype(NC)
-    @time for r=1:8, k=1:(1<<9); test(H, 4, r); end
+    @time for r=1:8, ngen=1:8, k=1:(1<<(8-NC))/ngen; test(H, ngen, r); end
 end
 
 end # module
