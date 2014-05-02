@@ -49,7 +49,8 @@ function enumerate_planes{T}(NC::Int, generators::Vector{Vector{T}})
             error("Generators do not span the the space")
         end
         if npos == 0 || nneg == 0
-            push!(facets, SortedFacet(gs, npos == 0, plane))
+            positive = (npos == 0)
+            push!(facets, SortedFacet(gs, positive, positive ? plane : -plane))
         end
     end
     # Filter out non-extreme generators
@@ -74,12 +75,12 @@ function filter_coplanar_facets{T}(generators::Vector{Vector{T}}, facets::Vector
 
     fs = SortedFacet{T}[]
     for facet in facets
-        j = find(first(facet.plane .!= 0))
+        j = first(find(facet.plane .!= 0))
         dominated = false
-        for g in facet.generators
+        for g in generators
             if g in facet.generators; continue; end
             
-            d = dot(facet.plane,g) * (facet.positive ? 1 : -1)
+            d = dot(facet.plane,g)
             @assert d <= 0
             if d < 0; continue; end
 
@@ -94,11 +95,12 @@ function filter_coplanar_facets{T}(generators::Vector{Vector{T}}, facets::Vector
                 if all(p .== 0); continue; end
 
                 sameway = (p[j] > 0) == (facet.plane[j] > 0)
-                if (sameway == isodd(NC-i)) == face.positive
-                    domintated = true; 
-                    break;
+                if (sameway == iseven(NC-i)) == facet.positive
+                    dominated = true; 
+                else
+                    @assert i < NC # i == NC ==> should always be dominated
                 end
-                @assert i < NC # i == NC ==> should always be dominated
+                break
             end
             if dominated; break; end
         end
@@ -129,6 +131,19 @@ function verify_hull(hull::ConicHull, generators::Vector)
     generators = [g.x for g in generators]
     generators, facets = RefHull.conichull(nconic(hull), generators)
 
+    hfacets = {}
+    for facet in hull.facets
+        gs, even = get_canonical_winding(facet)
+        push!(hfacets, (gs, even))
+    end
+    sort!(hfacets, 
+          lt=(w1,w2)->(
+              for (g1,g2) in zip(w1[1], w2[1]);
+                  if g1.id < g2.id; return true; end;
+                  if g2.id > g2.id; return false; end;
+              end;
+              return false;))
+
     try
         @assert length(hull.facets) == length(facets)
         facetset = Set()
@@ -144,9 +159,10 @@ function verify_hull(hull::ConicHull, generators::Vector)
         @show length(hull.facets), length(facets)
 
         println("hull.facets:")
-        for facet in hull.facets; println("  ", facet.generators); end
+#        for facet in hull.facets; println("  ", facet.generators); end
+        for (gens, pos) in hfacets; println("  ", gens, ": ", pos); end
         println("facets:")
-        for facet in facets; println("  ", [gmap[g] for g in facet.generators]); end
+        for facet in facets; println("  ", [gmap[g] for g in facet.generators], ": ", facet.positive); end
         println("generators:")
         for g in orig_generators; println("  ", g, ": ", g.x); end
         println("filtered generators:")
