@@ -1,7 +1,7 @@
 module ConicHulls
 
 export Facet, nconic, nface, ftype, gtype
-export ConicHull, create_simplex_hull, add!, verify
+export ConicHull, create_hull, add!, verify
 
 include("Common.jl")
 include("Dets.jl")
@@ -17,9 +17,7 @@ using .Hulls
 
 Hulls.hulltype(NC) = hulltype(AGen{NC,Int})
 
-function Hulls.create_simplex_hull(NC::Int)
-    create_simplex_hull(hulltype(NC))
-end
+Hulls.create_hull(NC::Int, generators) = create_hull(hulltype(NC), generators)
 
 
 end # module

@@ -1,6 +1,6 @@
 module Hulls
 
-export ConicHull, verify, validate, hulltype, create_simplex_hull, add!
+export ConicHull, verify, validate, hulltype, create_hull, add!
 export ftype
 export dominates
 export facesof
@@ -265,11 +265,15 @@ function add!{F}(hull::ConicHull{F}, generator::Generator)
     return true
 end
 
-function create_simplex(NC, F, G)
-    gs = [G(1:NC .== k) for k in 1:NC]
-    @assert det(gs...) > 0
+create_simplex(NC, F, G, gs::Matrix) = create_simplex(NC, F, G, [gs[:,k] for k in 1:size(gs,2)])
+function create_simplex(NC, F, G, gs::Vector)
+    @assert length(gs) == NC
+    gs = [G(x) for x in gs]
+    d = det(gs...)
+    @assert d != 0
+    odd = d < 0
 
-    fs = F[F(except_index(gs, kf), isodd(NC-kf)) for kf in 1:NC]
+    fs = F[F(except_index(gs, kf), isodd(NC-kf) $ odd) for kf in 1:NC]
 
     for (kf, f) in enumerate(fs)
         links = except_index([1:NC...], kf)
@@ -281,9 +285,9 @@ function create_simplex(NC, F, G)
     gs, fs
 end
 
-function create_simplex_hull{F,G}(H::Type{ConicHull{F,G}})
+function create_hull{F,G}(H::Type{ConicHull{F,G}}, generators)
     NC = nconic(H)
-    gs, fs = create_simplex(NC, F, G)
+    gs, fs = create_simplex(NC, F, G, generators)
     ConicHull{F,G}(gs, fs)
 end
 

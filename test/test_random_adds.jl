@@ -5,7 +5,7 @@ using ConicHulls, ConicHulls.RefHull
 function test(NC::Int, ngen::Int, r::Int)
     eval(ConicHulls.Hulls,:(numfacets=0))
     eval(ConicHulls.Primitives,:(numgenerators=0))
-    test(create_simplex_hull(NC), ngen, r)
+    test(create_hull(NC, eye(Int, NC)), ngen, r)
 end
 
 function test(hull::ConicHull, ngen::Int, r::Int)

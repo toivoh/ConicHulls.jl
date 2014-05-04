@@ -11,10 +11,11 @@ function printhull(hull::ConicHull)
 end
 
 function test(NC)
-    hull = create_simplex_hull(NC)
+    initial_gs = eye(Int, NC)
+    hull = create_hull(NC, initial_gs)
     NC, F, G = nconic(hull), ftype(hull), gtype(hull)
         
-    gs, fs = Hulls.create_simplex(NC, F, G)
+    gs, fs = Hulls.create_simplex(NC, F, G, initial_gs)
     # @show gs
     # @show fs
         

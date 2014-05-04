@@ -5,7 +5,8 @@ using ConicHulls, ConicHulls.RefHull
 function test(generators::Vector) 
     eval(ConicHulls.Hulls,:(numfacets=0))
     eval(ConicHulls.Primitives,:(numgenerators=0))
-    test(create_simplex_hull(length(generators[1])), generators)
+    NC = length(generators[1])
+    test(create_hull(NC, eye(Int, NC)), generators)
 end
 function test(hull::ConicHull, generators::Vector)
     NC, F, G = nconic(hull), ftype(hull), gtype(hull)
@@ -36,6 +37,9 @@ test(Vector[[1,0,0]])
 # Errors in coplanar facter filtering
 test(Vector[[1,1,0,-1]])
 
+
+# Test negative orientation of initial simplex points
+test(create_hull(3, -eye(Int, 3)), Vector[[-2,1,0]])
 
 # Test elimination of identical (proportional) generator
 test(Vector[[1,0]])
