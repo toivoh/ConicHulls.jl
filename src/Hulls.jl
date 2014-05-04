@@ -1,6 +1,6 @@
 module Hulls
 
-export ConicHull, verify, validate, hulltype, create_hull, add!
+export ConicHull, verify, validate, hulltype, create_hull, init_hull!, add!
 export ftype
 export dominates
 export facesof
@@ -119,10 +119,18 @@ end
 type ConicHull{F<:AFacet,G<:Generator}
     generators::Vector{G}
     facets::Set{F}
+
+    ConicHull() = (@assert nconic(F) == nconic(G); new())
     function ConicHull(generators, facets)
-        @assert nconic(F) == nconic(G)
-        new(G[generators...], Set{F}(facets))
+        hull = ConicHull{F,G}()
+        init_hull!(hull, generators, facets)
+        hull
     end
+end
+
+function init_hull!{F,G}(hull::ConicHull{F,G}, generators, facets)
+    hull.generators = G[generators...]
+    hull.facets = Set{F}(facets)
 end
 
 hulltype{G<:Generator}(::Type{G}) = ConicHull{AFacet{nfacet(G),G},G}
@@ -285,10 +293,19 @@ function create_simplex(NC, F, G, gs::Vector)
     gs, fs
 end
 
+create_hull{F,G}(H::Type{ConicHull{F,G}}) = H()
 function create_hull{F,G}(H::Type{ConicHull{F,G}}, generators)
-    NC = nconic(H)
+    hull = create_hull(H)
+    init_hull!(hull, generators)
+    hull
+end
+
+init_hull!(hull::ConicHull, gs::Matrix) = init_hull!(hull, [gs[:,k] for k in 1:size(gs,2)])
+function init_hull!{F,G}(hull::ConicHull{F,G}, generators::Vector)
+    NC = nconic(hull)
     gs, fs = create_simplex(NC, F, G, generators)
-    ConicHull{F,G}(gs, fs)
+    init_hull!(hull, gs, fs)
+    copy(gs)
 end
 
 end # module

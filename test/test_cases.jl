@@ -6,12 +6,12 @@ function test(generators::Vector)
     eval(ConicHulls.Hulls,:(numfacets=0))
     eval(ConicHulls.Primitives,:(numgenerators=0))
     NC = length(generators[1])
-    test(create_hull(NC, eye(Int, NC)), generators)
+    test(create_hull(NC), generators)
 end
 function test(hull::ConicHull, generators::Vector)
     NC, F, G = nconic(hull), ftype(hull), gtype(hull)
-        
-    gs = copy(hull.generators)
+    
+    gs = init_hull!(hull, eye(Int, NC))
 
     verify(hull)
     verify_hull(hull, gs)

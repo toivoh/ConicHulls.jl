@@ -5,12 +5,13 @@ using ConicHulls, ConicHulls.RefHull
 function test(NC::Int, ngen::Int, r::Int)
     eval(ConicHulls.Hulls,:(numfacets=0))
     eval(ConicHulls.Primitives,:(numgenerators=0))
-    test(create_hull(NC, eye(Int, NC)), ngen, r)
+    test(create_hull(NC), ngen, r)
 end
 
 function test(hull::ConicHull, ngen::Int, r::Int)
-    NC, F, G = nconic(hull), ftype(hull), gtype(hull)        
-    gs = copy(hull.generators)
+    NC, F, G = nconic(hull), ftype(hull), gtype(hull)
+    
+    gs = init_hull!(hull, eye(Int, NC))
 
     for k=1:ngen
         verify(hull)
