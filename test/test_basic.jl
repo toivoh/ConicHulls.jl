@@ -10,8 +10,9 @@ function printhull(hull::ConicHull)
     end
 end
 
-function test(H)
-    NC, F, G = nconic(H), ftype(H), gtype(H)
+function test(NC)
+    hull = create_simplex_hull(NC)
+    NC, F, G = nconic(hull), ftype(hull), gtype(hull)
         
     gs, fs = Hulls.create_simplex(NC, F, G)
     # @show gs
@@ -23,7 +24,6 @@ function test(H)
         @assert !dominates(gs[1], fs[1])
     end
         
-    hull = create_simplex_hull(H)
     gs = copy(hull.generators)
     verify(hull)
     verify_hull(hull, gs)
@@ -55,8 +55,7 @@ end
 
 for k=1:2
     for NC in 3:5
-        H = hulltype(NC)
-        @time test(H)
+        @time test(NC)
     end
 end
 

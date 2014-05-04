@@ -2,13 +2,14 @@ module TestCases
 
 using ConicHulls, ConicHulls.RefHull
 
-test(generators::Vector) = test(hulltype(length(generators[1])), generators)
-function test(H, generators::Vector)
+function test(generators::Vector) 
     eval(ConicHulls.Hulls,:(numfacets=0))
     eval(ConicHulls.Primitives,:(numgenerators=0))
-    NC, F, G = nconic(H), ftype(H), gtype(H)
+    test(create_simplex_hull(length(generators[1])), generators)
+end
+function test(hull::ConicHull, generators::Vector)
+    NC, F, G = nconic(hull), ftype(hull), gtype(hull)
         
-    hull = create_simplex_hull(H)
     gs = copy(hull.generators)
 
     verify(hull)

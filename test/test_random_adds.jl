@@ -2,12 +2,14 @@ module TestRandomAdditions
 
 using ConicHulls, ConicHulls.RefHull
 
-function test(H, ngen::Int, r::Int)
+function test(NC::Int, ngen::Int, r::Int)
     eval(ConicHulls.Hulls,:(numfacets=0))
     eval(ConicHulls.Primitives,:(numgenerators=0))
-    NC, F, G = nconic(H), ftype(H), gtype(H)
-        
-    hull = create_simplex_hull(H)
+    test(create_simplex_hull(NC), ngen, r)
+end
+
+function test(hull::ConicHull, ngen::Int, r::Int)
+    NC, F, G = nconic(hull), ftype(hull), gtype(hull)        
     gs = copy(hull.generators)
 
     for k=1:ngen
@@ -25,8 +27,7 @@ end
 
 srand(673826715664)
 for NC in 3:5
-    H = hulltype(NC)
-    @time for r=1:8, ngen=1:8, k=1:(1<<(8-NC))/ngen; test(H, ngen, r); end
+    @time for r=1:8, ngen=1:8, k=1:(1<<(8-NC))/ngen; test(NC, ngen, r); end
 end
 
 end # module
