@@ -5,14 +5,16 @@ export create_nb_dict, get_nb
 using ..Common
 
 
-immutable Link{G,NL}
-    generators::NTuple{NL,G}
+immutable Link{G}
+    generators::Vector{G}
     even::Bool
 
     function Link(generators::Vector, even::Bool, k::Int)
-        new(tuple(except_index(generators, k)...), even $ isodd(NL+1-k))
+        new(except_index(generators, k), even $ isodd(length(generators)-k))
     end
 end
+Base.isequal(l1::Link, l2::Link) = (l1.generators == l2.generators && l1.even == l2.even)
+Base.hash(link::Link) = hash(link.generators) $ link.even
 
 function add_links!{F<:Facet,L<:Link}(links::Dict{L,F}, facets)
     for facet in facets
@@ -26,7 +28,7 @@ function add_links!{F<:Facet,L<:Link}(links::Dict{L,F}, facets)
 end
 
 function create_nb_dict{F<:Facet}(::Type{F}, facets)
-    links = Dict{Link{gtype(F),nfacet(first(facets))-1}, F}()
+    links = Dict{Link{gtype(F)}, F}()
     add_links!(links, facets)
     links
 end
