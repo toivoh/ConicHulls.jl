@@ -29,10 +29,10 @@ set_nb!{F}(f::Face{F}, newnb::F) = (f.parent.links[f.k] = newnb)
 
 immutable Faces{F<:Facet}; parent::F; end
 
-Base.length{F}(faces::Faces{F}) = nfacet(F)
+Base.length(faces::Faces) = nfacet(faces.parent)
 Base.start(faces::Faces) = 1
 Base.next{F}(faces::Faces{F}, k) = (Face{F}(faces.parent, k), k+1)
-Base.done{F}(faces::Faces{F}, k) = k == (nfacet(F)+1)
+Base.done(faces::Faces, k) = k == (nfacet(faces.parent)+1)
 Base.eltype{F}(faces::Faces{F}) = Face{F}
 
 facesof(f::Facet) = Faces(f)
@@ -63,7 +63,6 @@ function AFacet{F<:AFacet}(face::Face{F}, generator::Generator)
     F(generators, facet.positive)
 end
 
-nconic{NF,G}(::Type{AFacet{NF,G}}) = NF + 1
 gtype{NF,G}( ::Type{AFacet{NF,G}}) = G
 
 # Base.show(io::IO, f::AFacet) = print(io, "Facet$(f.id)")
@@ -114,7 +113,8 @@ type ConicHull{F<:AFacet,G<:Generator}
     generators::Vector{G}
     facets::Set{F}
 
-    ConicHull() = (@assert nconic(F) == nconic(G); new())
+#    ConicHull() = (@assert nconic(F) == nconic(G); new())
+    ConicHull() = new()
     function ConicHull(generators, facets)
         hull = ConicHull{F,G}()
         init_hull!(hull, generators, facets)
@@ -135,7 +135,6 @@ ftype{F,G}(::ConicHull{F,G})       = F
 gtype{F,G}(::Type{ConicHull{F,G}}) = G
 gtype{F,G}(::ConicHull{F,G})       = G
 
-nconic{F,G}(::Type{ConicHull{F,G}}) = nconic(G)
 nconic{F,G}(::ConicHull{F,G})       = nconic(G)
 
 

@@ -10,7 +10,6 @@ abstract Facet{NF}
 
 nconic{NC}(::Type{Generator{NC}}) = NC
 nconic{NC}(::Generator{NC})       = NC
-nconic{NF}(::Type{Facet{NF}})     = NF + 1
 nconic{NF}(::Facet{NF})           = NF + 1
 
 nfacet(x) = nconic(x) - 1

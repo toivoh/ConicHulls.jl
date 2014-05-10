@@ -15,10 +15,9 @@ immutable Link{G,NL}
 end
 
 function add_links!{F<:Facet,L<:Link}(links::Dict{L,F}, facets)
-    NF = nfacet(F)
     for facet in facets
         generators, even = get_canonical_winding(facet)
-        for k in 1:NF
+        for k in 1:nfacet(facet)
             link = L(generators, even, k)
             if haskey(links, link); error("Link already exists!"); end
             links[link] = facet
@@ -27,7 +26,7 @@ function add_links!{F<:Facet,L<:Link}(links::Dict{L,F}, facets)
 end
 
 function create_nb_dict{F<:Facet}(::Type{F}, facets)
-    links = Dict{Link{gtype(F),nfacet(F)-1}, F}()
+    links = Dict{Link{gtype(F),nfacet(first(facets))-1}, F}()
     add_links!(links, facets)
     links
 end
