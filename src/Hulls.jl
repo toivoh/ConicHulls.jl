@@ -67,7 +67,7 @@ gtype{G}( ::Type{AFacet{G}}) = G
 nconic(facet::AFacet) = length(facet.generators) + 1
 
 # Base.show(io::IO, f::AFacet) = print(io, "Facet$(f.id)")
-function Base.show{G}(io::IO, f::AFacet{G})
+function Base.show(io::IO, f::AFacet)
     print(io, "Facet$(f.id)(", f.generators, ", [")
     for (k, nb) in enumerate(f.links)
         print(io, "Facet$(nb.id)")
@@ -170,8 +170,8 @@ function verify(hull::ConicHull)
     end
 end
 
-function validate{F}(hull::ConicHull{F})
-    links = create_nb_dict(F, hull.facets)
+function validate(hull::ConicHull)
+    links = create_nb_dict(ftype(hull), hull.facets)
     for facet in hull.facets
         for (g,nb) in zip(facet.generators, facet.links)
             @assert nb === get_nb(links, facet, g)
@@ -299,9 +299,9 @@ function create_hull{F,G}(nc::Int, H::Type{ConicHull{F,G}}, generators)
 end
 
 init_hull!(hull::ConicHull, gs::Matrix) = init_hull!(hull, [gs[:,k] for k in 1:size(gs,2)])
-function init_hull!{F,G}(hull::ConicHull{F,G}, generators::Vector)
+function init_hull!(hull::ConicHull, generators::Vector)
     NC = nconic(hull)
-    gs, fs = create_simplex(NC, F, G, generators)
+    gs, fs = create_simplex(NC, ftype(hull), gtype(hull), generators)
     init_hull!(hull, gs, fs)
     copy(gs)
 end
