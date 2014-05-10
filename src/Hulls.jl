@@ -258,9 +258,10 @@ function create_links!(hull::ConicHull, newfacet::Facet, generator::Generator)
     end    
 end
 
-function add!{F}(hull::ConicHull{F}, generator::Generator)
+add!{F,G}(hull::ConicHull{F,G}, x) = add!(hull, G(x))
+function add!{F,G}(hull::ConicHull{F,G}, generator::G)
     dominated = find_dominated_facet(hull, generator)
-    if dominated === nothing; return false; end
+    if dominated === nothing; return nothing; end
 
     push!(hull.generators, generator)
 
@@ -270,7 +271,7 @@ function add!{F}(hull::ConicHull{F}, generator::Generator)
     for facet in newfacets; create_links!(hull, facet, generator); end
     for facet in newfacets; push!(hull.facets, facet); end
 
-    return true
+    return generator
 end
 
 create_simplex(NC, F, G, gs::Matrix) = create_simplex(NC, F, G, [gs[:,k] for k in 1:size(gs,2)])

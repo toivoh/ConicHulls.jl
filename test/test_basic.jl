@@ -43,10 +43,11 @@ function test(NC)
         @assert find_dominated_facet(hull, g_out) === facet
     end
 
-    g = G([-1, fill(1, NC-1)...])
+    x = [-1, fill(1, NC-1)...]
 #    printhull(hull)
 #    println(g)
-    @assert add!(hull, g)
+    g = add!(hull, x)
+    @assert g != nothing
     verify(hull)
 
     push!(gs, g)
