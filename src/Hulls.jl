@@ -42,7 +42,7 @@ facesof(f::Facet) = Faces(f)
 
 global numfacets = 0
 
-immutable AFacet{NF,G} <: Facet{NF}
+immutable AFacet{NF,G} <: Facet
     generators::Vector{G}
     links::Vector{Union(AFacet{NF,G},Nothing)}
     positive::Bool
@@ -64,6 +64,7 @@ function AFacet{F<:AFacet}(face::Face{F}, generator::Generator)
 end
 
 gtype{NF,G}( ::Type{AFacet{NF,G}}) = G
+nconic(facet::AFacet) = length(facet.generators) + 1
 
 # Base.show(io::IO, f::AFacet) = print(io, "Facet$(f.id)")
 function Base.show{NF,G}(io::IO, f::AFacet{NF,G})

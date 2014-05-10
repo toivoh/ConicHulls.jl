@@ -6,11 +6,11 @@ export except_index, indexof, isevenperm, isoddperm
 
 
 abstract Generator{NC}
-abstract Facet{NF}
+abstract Facet
 
 nconic{NC}(::Type{Generator{NC}}) = NC
 nconic{NC}(::Generator{NC})       = NC
-nconic{NF}(::Facet{NF})           = NF + 1
+nconic(::Facet)                   = error("Unimplemented")
 
 nfacet(x) = nconic(x) - 1
 
