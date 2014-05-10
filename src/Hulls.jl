@@ -1,17 +1,11 @@
 module Hulls
 
-export ConicHull, verify, validate, hulltype, create_hull, init_hull!, add!
-export ftype
-export dominates
-export facesof
-export find_dominated_facet
+export ConicHull, verify, validate, create_hull, init_hull!, add!, ftype
 
 using ..Common
 using ..Dets
 using ..Verify
-import ..Common: nconic, gtype, get_canonical_winding
-
-import ..Common.indexof
+import ..Common: nconic, gtype, get_canonical_winding, indexof
 
 
 # ---------------------------------- Face ------------------------------------

@@ -15,10 +15,10 @@ using .Primitives
 using .Hulls
 
 
-Hulls.hulltype(NC) = hulltype(AGen{NC,Int})
+Hulls.hulltype(NC) = Hulls.hulltype(AGen{NC,Int})
 
-Hulls.create_hull(NC::Int) = create_hull(hulltype(NC))
-Hulls.create_hull(NC::Int, generators) = create_hull(hulltype(NC), generators)
+Hulls.create_hull(NC::Int) = create_hull(Hulls.hulltype(NC))
+Hulls.create_hull(NC::Int, generators) = create_hull(Hulls.hulltype(NC), generators)
 
 
 end # module
