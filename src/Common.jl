@@ -16,7 +16,7 @@ nfacet(x) = nconic(x) - 1
 gtype(::Facet)                 = error("Unimplemented")
 get_canonical_winding(::Facet) = error("Unimplemented")
 
-except_index{T}(x::Vector{T}, k::Int) = [x[1:(k-1)]... x[(k+1):end]...]
+except_index{T}(x::Vector{T}, k::Int) = [x[1:(k-1)]..., x[(k+1):end]...]
 
 function indexof(v::Vector, x)
     for (k, y) in enumerate(v); if y == x;  return k;  end; end
