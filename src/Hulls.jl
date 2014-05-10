@@ -42,17 +42,17 @@ facesof(f::Facet) = Faces(f)
 
 global numfacets = 0
 
-immutable AFacet{NF,G} <: Facet
+immutable AFacet{G} <: Facet
     generators::Vector{G}
-    links::Vector{Union(AFacet{NF,G},Nothing)}
+    links::Vector{Union(AFacet{G},Nothing)}
     positive::Bool
     id::Int
 
     function AFacet(generators, positive)
         global numfacets
-        f = new(G[generators...], fill!(Array(Union(AFacet{NF,G},Nothing), NF), nothing),
+        NF = length(generators)
+        f = new(G[generators...], fill!(Array(Union(AFacet{G},Nothing), NF), nothing),
                                         positive, numfacets += 1)
-        @assert length(f.generators) == NF
         f
     end    
 end
@@ -63,26 +63,26 @@ function AFacet{F<:AFacet}(face::Face{F}, generator::Generator)
     F(generators, facet.positive)
 end
 
-gtype{NF,G}( ::Type{AFacet{NF,G}}) = G
+gtype{G}( ::Type{AFacet{G}}) = G
 nconic(facet::AFacet) = length(facet.generators) + 1
 
 # Base.show(io::IO, f::AFacet) = print(io, "Facet$(f.id)")
-function Base.show{NF,G}(io::IO, f::AFacet{NF,G})
+function Base.show{G}(io::IO, f::AFacet{G})
     print(io, "Facet$(f.id)(", f.generators, ", [")
     for (k, nb) in enumerate(f.links)
         print(io, "Facet$(nb.id)")
-        if k < NF; print(io, ", "); end
+        if k < nfacet(f); print(io, ", "); end
     end
     print(io, "])");
 end
 
 indexof{F<:AFacet}(f::F, link::F)    = indexof(f.links, link)
-indexof{NF,G}(f::AFacet{NF,G}, g::G) = indexof(f.generators, g)
+indexof{G}(f::AFacet{G}, g::G) = indexof(f.generators, g)
 
-opposite{F<:AFacet}(f::F, link::F)    = f.generators[indexof(f, link)]
-opposite{NF,G}(f::AFacet{NF,G}, g::G) = f.links[     indexof(f, g)]
+opposite{F<:AFacet}(f::F, link::F) = f.generators[indexof(f, link)]
+opposite{G}(f::AFacet{G}, g::G)    = f.links[     indexof(f, g)]
 replace_link!{F<:AFacet}(f::F, new_link::F, link::F) = (f.links[indexof(f, link)] = new_link)
-function set_opposite!{NF,G}(f::AFacet{NF,G}, new_link::AFacet{NF,G}, g::G)
+function set_opposite!{G}(f::AFacet{G}, new_link::AFacet{G}, g::G)
     f.links[indexof(f, g)] = new_link
 end
 
@@ -128,7 +128,7 @@ function init_hull!{F,G}(hull::ConicHull{F,G}, generators, facets)
     hull.facets = Set{F}(facets)
 end
 
-hulltype{G<:Generator}(::Type{G}) = ConicHull{AFacet{nfacet(G),G},G}
+hulltype{G<:Generator}(::Type{G}) = ConicHull{AFacet{G},G}
 
 ftype{F,G}(::Type{ConicHull{F,G}}) = F
 ftype{F,G}(::ConicHull{F,G})       = F
