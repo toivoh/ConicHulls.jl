@@ -111,13 +111,14 @@ end
 # -------------------------------- ConicHull ---------------------------------
 
 type ConicHull{F<:AFacet,G<:Generator}
+    nc::Int
     generators::Vector{G}
     facets::Set{F}
 
 #    ConicHull() = (@assert nconic(F) == nconic(G); new())
-    ConicHull() = new()
-    function ConicHull(generators, facets)
-        hull = ConicHull{F,G}()
+    ConicHull(nc::Int) = new(nc)
+    function ConicHull(nc::Int, generators, facets)
+        hull = ConicHull{F,G}(nc)
         init_hull!(hull, generators, facets)
         hull
     end
@@ -136,7 +137,7 @@ ftype{F,G}(::ConicHull{F,G})       = F
 gtype{F,G}(::Type{ConicHull{F,G}}) = G
 gtype{F,G}(::ConicHull{F,G})       = G
 
-nconic{F,G}(::ConicHull{F,G})       = nconic(G)
+nconic(hull::ConicHull) = hull.nc
 
 
 function verify(hull::ConicHull)
@@ -288,9 +289,9 @@ function create_simplex(NC, F, G, gs::Vector)
     gs, fs
 end
 
-create_hull{F,G}(H::Type{ConicHull{F,G}}) = H()
-function create_hull{F,G}(H::Type{ConicHull{F,G}}, generators)
-    hull = create_hull(H)
+create_hull{F,G}(nc::Int, H::Type{ConicHull{F,G}}) = H(nc)
+function create_hull{F,G}(nc::Int, H::Type{ConicHull{F,G}}, generators)
+    hull = create_hull(nc, H)
     init_hull!(hull, generators)
     hull
 end
