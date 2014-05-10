@@ -255,6 +255,7 @@ end
 
 add!{F,G}(hull::ConicHull{F,G}, x) = add!(hull, G(x))
 function add!{F,G}(hull::ConicHull{F,G}, generator::G)
+    @assert nconic(generator) == nconic(hull)
     dominated = find_dominated_facet(hull, generator)
     if dominated === nothing; return nothing; end
 
@@ -273,6 +274,7 @@ create_simplex(NC, F, G, gs::Matrix) = create_simplex(NC, F, G, [gs[:,k] for k i
 function create_simplex(NC, F, G, gs::Vector)
     @assert length(gs) == NC
     gs = [G(x) for x in gs]
+    for g in gs; (@assert nconic(g) == NC); end
     d = det(gs...)
     @assert d != 0
     odd = d < 0
