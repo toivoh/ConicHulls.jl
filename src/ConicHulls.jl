@@ -15,7 +15,7 @@ using .Primitives
 using .Hulls
 
 
-Hulls.hulltype(NC) = Hulls.hulltype(AGen{NC,Int})
+Hulls.hulltype(NC) = Hulls.hulltype(AGen{Int})
 
 Hulls.create_hull(NC::Int) = create_hull(NC, Hulls.hulltype(NC))
 Hulls.create_hull(NC::Int, generators) = create_hull(NC, Hulls.hulltype(NC), generators)

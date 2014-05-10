@@ -5,12 +5,11 @@ export get_canonical_winding
 export except_index, indexof, isevenperm, isoddperm
 
 
-abstract Generator{NC}
+abstract Generator
 abstract Facet
 
-nconic{NC}(::Type{Generator{NC}}) = NC
-nconic{NC}(::Generator{NC})       = NC
-nconic(::Facet)                   = error("Unimplemented")
+nconic(::Generator) = error("Unimplemented")
+nconic(::Facet)     = error("Unimplemented")
 
 nfacet(x) = nconic(x) - 1
 
