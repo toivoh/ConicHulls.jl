@@ -1,14 +1,18 @@
 module Common
 
-export Generator, Facet, nconic, nfacet, gtype
+export Generator, Facet, Hull, nconic, nfacet, gtype
 export get_canonical_winding
 export except_index, indexof, isevenperm, isoddperm
 
 export dominates, antidominates
 export Face, facesof, nbof, opposite, set_opposite!, replace_link!, set_nb!
 
+export add_facet!
+
+
 abstract Generator
 abstract Facet
+abstract Hull
 
 nconic(::None) = error("Unimplemented")
 
@@ -17,7 +21,6 @@ nfacet(x) = nconic(x) - 1
 dot(f::None, g::None) = error("Unimplemented")
 dominates(    g::Generator, f::Facet) = dot(f, g) > 0
 antidominates(g::Generator, f::Facet) = dot(f, g) < 0
-
 
 gtype(::None)                 = error("Unimplemented")
 get_canonical_winding(::None) = error("Unimplemented")
@@ -69,6 +72,8 @@ flip(f::Face)     = (nb = nbof(f); Face(nb, indexof(nb, f)))
 
 set_nb!{F}(f::Face{F}, newnb::F) = (f.parent.links[f.k] = newnb)
 
+
+add_facet!(h::None, face::None, g::None) = error("Unimplemented")
 
 # ---------------------------------- Faces -----------------------------------
 

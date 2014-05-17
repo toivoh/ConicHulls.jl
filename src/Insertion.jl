@@ -5,7 +5,7 @@ export add!
 import ..Common
 using ..Common
 using ..Verify
-using ..Hulls: AFacet, ConicHull
+using ..Hulls: ConicHull
 using ..Hulls: antidominates_replaced
 
 
@@ -52,7 +52,7 @@ function mark_dominated!{F}(newfacets::Vector{F}, hull::ConicHull{F},
     for (face, nb) in zip(facesof(facet), facet.links)
         if !mark_dominated!(newfacets, hull, generator, nb)
             # Found border: facet is (weakly) dominated but not nb
-            newfacet = AFacet(face, generator)
+            newfacet = add_facet!(hull, face, generator)
             set_opposite!(newfacet, nb, generator)
             replace_link!(nb, newfacet, facet)
             push!(newfacets, newfacet)

@@ -7,6 +7,7 @@ using ..Dets
 using ..Verify
 import ..Common: nconic, gtype, get_canonical_winding, indexof
 import ..Common: dot, set_opposite!, replace_link!, opposite
+import ..Common.add_facet!
 
 
 # --------------------------------- AFacet -----------------------------------
@@ -80,7 +81,7 @@ end
 
 # -------------------------------- ConicHull ---------------------------------
 
-type ConicHull{F<:AFacet,G<:Generator}
+type ConicHull{F<:AFacet,G<:Generator} <: Hull
     nc::Int
     generators::Vector{G}
     facets::Set{F}
@@ -108,6 +109,12 @@ gtype{F,G}(::Type{ConicHull{F,G}}) = G
 gtype{F,G}(::ConicHull{F,G})       = G
 
 nconic(hull::ConicHull) = hull.nc
+
+function add_facet!(h::ConicHull, face::Face, g::Generator)
+    f = AFacet(face, g)
+    # push!(h.facets, f) # todo: add in when it doesn't signify marked status anymore
+    f
+end
 
 
 function verify(hull::ConicHull)
