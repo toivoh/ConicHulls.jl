@@ -5,8 +5,7 @@ export add!
 import ..Common
 using ..Common
 using ..Verify
-using ..Hulls
-using ..Hulls: AFacet
+using ..Hulls: AFacet, ConicHull
 using ..Hulls: antidominates_replaced
 
 
