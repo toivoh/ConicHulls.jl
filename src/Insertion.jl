@@ -8,7 +8,6 @@ using ..Verify
 using ..Hulls
 using ..Hulls: AFacet
 using ..Hulls: antidominates_replaced
-using ..Hulls: facesof, nbof, opposite, set_opposite!, replace_link!, set_nb!
 
 
 function find_dominated_facet(hull::ConicHull, generator::Generator)

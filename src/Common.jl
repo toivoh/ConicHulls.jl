@@ -3,8 +3,9 @@ module Common
 export Generator, Facet, nconic, nfacet, gtype
 export get_canonical_winding
 export except_index, indexof, isevenperm, isoddperm
-export dominates, antidominates
 
+export dominates, antidominates
+export Face, facesof, nbof, opposite, set_opposite!, replace_link!, set_nb!
 
 abstract Generator
 abstract Facet
@@ -47,5 +48,39 @@ function isevenperm{T}(p::Vector{T})
     end
     even
 end
+
+
+set_opposite!(f::None, new_link::None, g::None)    = error("Unimplemented")
+replace_link!(f::None, new_link::None, link::None) = error("Unimplemented")
+
+# ---------------------------------- Face ------------------------------------
+
+immutable Face{F<:Facet}
+    parent::F
+    k::Int
+end
+Face{F<:Facet}(parent::F, nb::F) = Face{F}(parent, indexof(parent, nb))
+Face{F<:Facet}(parent::F, g::Generator) = Face{F}(parent, indexof(parent, g))
+
+parentof(f::Face) = f.parent
+nbof(f::Face)     = f.parent.links[f.k]
+opposite(f::Face) = f.parent.generators[f.k]
+flip(f::Face)     = (nb = nbof(f); Face(nb, indexof(nb, f)))
+
+set_nb!{F}(f::Face{F}, newnb::F) = (f.parent.links[f.k] = newnb)
+
+
+# ---------------------------------- Faces -----------------------------------
+
+immutable Faces{F<:Facet}; parent::F; end
+
+Base.length(faces::Faces) = nfacet(faces.parent)
+Base.start(faces::Faces) = 1
+Base.next{F}(faces::Faces{F}, k) = (Face{F}(faces.parent, k), k+1)
+Base.done(faces::Faces, k) = k == (nfacet(faces.parent)+1)
+Base.eltype{F}(faces::Faces{F}) = Face{F}
+
+facesof(f::Facet) = Faces(f)
+
 
 end # module
