@@ -3,18 +3,23 @@ module Common
 export Generator, Facet, nconic, nfacet, gtype
 export get_canonical_winding
 export except_index, indexof, isevenperm, isoddperm
+export dominates, antidominates
 
 
 abstract Generator
 abstract Facet
 
-nconic(::Generator) = error("Unimplemented")
-nconic(::Facet)     = error("Unimplemented")
+nconic(::None) = error("Unimplemented")
 
 nfacet(x) = nconic(x) - 1
 
-gtype(::Facet)                 = error("Unimplemented")
-get_canonical_winding(::Facet) = error("Unimplemented")
+dot(f::None, g::None) = error("Unimplemented")
+dominates(    g::Generator, f::Facet) = dot(f, g) > 0
+antidominates(g::Generator, f::Facet) = dot(f, g) < 0
+
+
+gtype(::None)                 = error("Unimplemented")
+get_canonical_winding(::None) = error("Unimplemented")
 
 except_index{T}(x::Vector{T}, k::Int) = [x[1:(k-1)]..., x[(k+1):end]...]
 

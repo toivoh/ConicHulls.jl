@@ -5,7 +5,7 @@ export ConicHull, verify, validate, create_hull, init_hull!, ftype
 using ..Common
 using ..Dets
 using ..Verify
-import ..Common: nconic, gtype, get_canonical_winding, indexof
+import ..Common: nconic, gtype, get_canonical_winding, indexof, dot
 
 
 # ---------------------------------- Face ------------------------------------
@@ -96,11 +96,10 @@ end
 
 # -------------------------------- Dominance ---------------------------------
 
-dot(f::Facet, g::Generator) = det(f.generators..., g)
-hassign(x::Number, positive::Bool) = positive ? x > 0 : x < 0
-dominates(g::Generator, f::Facet) = hassign(dot(f, g), f.positive)
-antidominates(g::Generator, f::Facet) = hassign(dot(f, g), !f.positive)
+dot(f::AFacet, g::Generator)   = xorsign(det(f.generators..., g), !f.positive)
+xorsign(x::Number, flip::Bool) = flip ? -x : x
 
+hassign(x::Number, positive::Bool) = positive ? x > 0 : x < 0
 function antidominates_replaced(g::Generator, face::Face, replacement::Generator)
     gs = copy(face.parent.generators)
     gs[face.k] = replacement

@@ -2,11 +2,12 @@ module Insertion
 
 export add!
 
+import ..Common
 using ..Common
 using ..Verify
 using ..Hulls
 using ..Hulls: AFacet
-using ..Hulls: dot, dominates, antidominates, antidominates_replaced
+using ..Hulls: antidominates_replaced
 using ..Hulls: facesof, nbof, opposite, set_opposite!, replace_link!, set_nb!
 
 
@@ -20,12 +21,12 @@ function find_dominated_facet(hull::ConicHull, generator::Generator)
     facet = first(hull.facets)
     primary = facet.generators[1] # get a primary that is extreme
     for f in hull.facets
-        if dot(f, primary) != 0
+        if Common.dot(f, primary) != 0
             facet = f
             break
         end
     end
-    @assert dot(facet, primary) != 0
+    @assert Common.dot(facet, primary) != 0
 
     while true
         if dominates(generator, facet); return facet; end
