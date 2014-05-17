@@ -2,7 +2,8 @@ module TestBasic
 
 using ConicHulls, ConicHulls.Common, ConicHulls.Dets, ConicHulls.Hulls
 using ConicHulls.RefHull
-using ConicHulls.Hulls: dominates, find_dominated_facet
+using ConicHulls.Hulls.dominates
+using ConicHulls.Insertion.find_dominated_facet
 
 function printhull(hull::ConicHull)
     println("ConicHull:")

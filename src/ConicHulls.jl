@@ -8,11 +8,13 @@ include("Dets.jl")
 include("Primitives.jl")
 include("Verify.jl")
 include("Hulls.jl")
+include("Insertion.jl")
 include("RefHull.jl")
 
 using .Common
 using .Primitives
 using .Hulls
+using .Insertion
 
 
 Hulls.hulltype(NC) = Hulls.hulltype(AGen{Int})
