@@ -8,6 +8,7 @@ using ..Verify
 import ..Common: nconic, gtype, get_canonical_winding, indexof
 import ..Common: dot, set_opposite!, replace_link!, opposite
 import ..Common: add_facet!, del_facet!, mark_facet!, ismarked
+import ..Common: nbof, nbsof, generatorof, generatorsof, set_nb!
 
 
 # --------------------------------- AFacet -----------------------------------
@@ -37,6 +38,13 @@ end
 
 gtype{G}( ::Type{AFacet{G}}) = G
 nconic(facet::AFacet) = length(facet.generators) + 1
+
+nbof(f::AFacet, k::Int)                    = f.links[k]
+set_nb!(f::AFacet, new_nb::AFacet, k::Int) = (f.links[k] = new_nb; nothing)
+generatorof(f::AFacet, k::Int)             = f.generators[k]
+nbsof(f::AFacet)        = f.links
+generatorsof(f::AFacet) = f.generators
+
 
 # Base.show(io::IO, f::AFacet) = print(io, "Facet$(f.id)")
 function Base.show(io::IO, f::AFacet)

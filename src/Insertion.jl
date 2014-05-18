@@ -17,7 +17,7 @@ function find_dominated_facet(hull::ConicHull, generator::Generator)
     # todo: more efficient way to find a primary generator and starting facet
     # that span a volume
     facet = first(hull.facets)
-    primary = facet.generators[1] # get a primary that is extreme
+    primary = generatorof(facet, 1) # get a primary that is extreme
     for f in hull.facets
         if Common.dot(f, primary) != 0
             facet = f
@@ -47,7 +47,7 @@ function mark_dominated!{F}(newfacets::Vector{F}, removedfacets::Vector{F}, hull
 
     mark_facet!(hull, facet)
     push!(removedfacets, facet)
-    for (face, nb) in zip(facesof(facet), facet.links)
+    for (face, nb) in zip(facesof(facet), nbsof(facet))
         if !mark_dominated!(newfacets, removedfacets, hull, generator, nb)
             # Found border: facet is (weakly) dominated but not nb
             newfacet = add_facet!(hull, face, generator)
@@ -62,7 +62,7 @@ end
 
 function create_links!(hull::ConicHull, newfacet::Facet, generator::Generator)
     facet0 = opposite(newfacet, generator)
-    for (face, gen) in zip(facesof(newfacet), newfacet.generators)
+    for (face, gen) in zip(facesof(newfacet), generatorsof(newfacet))
         if gen == generator; continue; end
         if !(nbof(face) === nothing); continue; end
 
