@@ -5,7 +5,7 @@ export get_canonical_winding
 export except_index, indexof, isevenperm, isoddperm
 
 export dominates, antidominates
-export Face, facesof, nbof, opposite, set_opposite!, replace_link!
+export Face, facesof
 export nbof, nbsof, generatorof, generatorsof, set_nb!
 
 export add_facet!, del_facet!, mark_facet!, ismarked
@@ -61,14 +61,11 @@ set_nb!(f::None, new_nb::None, k::Int) = error("Unimplemented")
 set_nb!(f::Facet, new_nb::Facet, k::Union(Facet,Generator)) = set_nb!(f, new_nb, indexof(f, k))
 
 generatorof(f::None, k::Int) = error("Unimplemented")
-generatorof(f::Facet, k::Union(Facet,Generator)) = genof(f, indexof(f, k))
+generatorof(f::Facet, k::Union(Facet,Generator)) = generatorof(f, indexof(f, k))
 
 nbsof(f::None) = error("Unimplemented")
 generatorsof(f::None) = error("Unimplemented")
 
-
-set_opposite!(f::None, new_link::None, g::None)    = error("Unimplemented")
-replace_link!(f::None, new_link::None, link::None) = error("Unimplemented")
 
 # ---------------------------------- Face ------------------------------------
 
@@ -79,10 +76,10 @@ end
 Face{F<:Facet}(parent::F, nb::F) = Face{F}(parent, indexof(parent, nb))
 Face{F<:Facet}(parent::F, g::Generator) = Face{F}(parent, indexof(parent, g))
 
-parentof(f::Face) = f.parent
-nbof(f::Face)     = nbof(f.parent, f.k)
-opposite(f::Face) = generatorof(f.parent, f.k)
-flip(f::Face)     = (nb = nbof(f); Face(nb, indexof(nb, f)))
+parentof(f::Face)    = f.parent
+nbof(f::Face)        = nbof(f.parent, f.k)
+generatorof(f::Face) = generatorof(f.parent, f.k)
+flip(f::Face)        = (nb = nbof(f); Face(nb, indexof(nb, f)))
 
 set_nb!{F}(f::Face{F}, newnb::F) = set_nb!(f.parent, newnb, f.k)
 

@@ -6,7 +6,7 @@ using ..Common
 using ..Dets
 using ..Verify
 import ..Common: nconic, gtype, get_canonical_winding, indexof
-import ..Common: dot, set_opposite!, replace_link!, opposite
+import ..Common: dot
 import ..Common: add_facet!, del_facet!, mark_facet!, ismarked
 import ..Common: nbof, nbsof, generatorof, generatorsof, set_nb!
 
@@ -58,13 +58,6 @@ end
 
 indexof{F<:AFacet}(f::F, link::F)    = indexof(f.links, link)
 indexof{G}(f::AFacet{G}, g::G) = indexof(f.generators, g)
-
-opposite{F<:AFacet}(f::F, link::F) = f.generators[indexof(f, link)]
-opposite{G}(f::AFacet{G}, g::G)    = f.links[     indexof(f, g)]
-replace_link!{F<:AFacet}(f::F, new_link::F, link::F) = (f.links[indexof(f, link)] = new_link)
-function set_opposite!{G}(f::AFacet{G}, new_link::AFacet{G}, g::G)
-    f.links[indexof(f, g)] = new_link
-end
 
 function get_canonical_winding(facet::AFacet)
     perm = sortperm(facet.generators, by=g->g.id)
@@ -151,7 +144,7 @@ function verify(hull::ConicHull)
             @assert !dominates(generator, nb)
             
             # Check that there is a link back
-            nb_g = opposite(nb, facet)
+            nb_g = generatorof(nb, facet)
             # Check that the linked facets have all generators in common except the opposite ones
             link_gs = Set(facet.generators); pop!(link_gs, generator)
             link_nb_gs = Set(nb.generators); pop!(link_nb_gs, nb_g)

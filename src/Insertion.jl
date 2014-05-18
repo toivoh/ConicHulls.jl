@@ -52,8 +52,8 @@ function mark_dominated!{F}(newfacets::Vector{F}, removedfacets::Vector{F}, hull
             # Found border: facet is (weakly) dominated but not nb
             newfacet = add_facet!(hull, face, generator)
             mark_facet!(hull, newfacet)
-            set_opposite!(newfacet, nb, generator)
-            replace_link!(nb, newfacet, facet)
+            set_nb!(newfacet, nb, generator)
+            set_nb!(nb, newfacet, facet)
             push!(newfacets, newfacet)
         end
     end
@@ -61,24 +61,24 @@ function mark_dominated!{F}(newfacets::Vector{F}, removedfacets::Vector{F}, hull
 end
 
 function create_links!(hull::ConicHull, newfacet::Facet, generator::Generator)
-    facet0 = opposite(newfacet, generator)
+    facet0 = nbof(newfacet, generator)
     for (face, gen) in zip(facesof(newfacet), generatorsof(newfacet))
         if gen == generator; continue; end
         if !(nbof(face) === nothing); continue; end
 
         lastfacet = newfacet
         gfrom = generator
-        gto = opposite(face)
+        gto = generatorof(face)
         facet = facet0
         while !ismarked(hull, facet)
-            gnew = opposite(facet, lastfacet)
+            gnew = generatorof(facet, lastfacet)
             gto, gfrom = gnew, gto
-            fnew = opposite(facet, gfrom)
+            fnew = nbof(facet, gfrom)
             facet, lastfacet = fnew, facet
         end
         
         set_nb!(face, facet)
-        set_opposite!(facet, newfacet, gto)
+        set_nb!(facet, newfacet, gto)
     end    
 end
 
