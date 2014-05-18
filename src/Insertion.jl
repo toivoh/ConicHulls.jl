@@ -4,7 +4,6 @@ export add!
 
 import ..Common
 using ..Common
-using ..Verify
 using ..Hulls: ConicHull
 using ..Hulls: antidominates_replaced
 
