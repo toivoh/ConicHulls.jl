@@ -7,7 +7,7 @@ export except_index, indexof, isevenperm, isoddperm
 export dominates, antidominates
 export Face, facesof, nbof, opposite, set_opposite!, replace_link!, set_nb!
 
-export add_facet!
+export add_facet!, del_facet!, mark_facet!, ismarked
 
 
 abstract Generator
@@ -73,7 +73,11 @@ flip(f::Face)     = (nb = nbof(f); Face(nb, indexof(nb, f)))
 set_nb!{F}(f::Face{F}, newnb::F) = (f.parent.links[f.k] = newnb)
 
 
-add_facet!(h::None, face::None, g::None) = error("Unimplemented")
+add_facet!(h::None, face::None, g::None)      = error("Unimplemented")
+del_facet!(h::None, facet::None)              = error("Unimplemented")
+mark_facet!(h::None, facet::None, mark::Bool) = error("Unimplemented")
+mark_facet!(h, facet) = mark_facet!(h, facet, true)
+ismarked(h::None, facet::None)                = error("Unimplemented")
 
 # ---------------------------------- Faces -----------------------------------
 

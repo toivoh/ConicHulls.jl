@@ -40,19 +40,18 @@ function find_dominated_facet(hull::ConicHull, generator::Generator)
     end
 end
 
-ismarked(hull::ConicHull, facet::Facet) = !(facet in hull.facets) 
-mark!(hull::ConicHull, facet::Facet) = pop!(hull.facets, facet)
-
-function mark_dominated!{F}(newfacets::Vector{F}, hull::ConicHull{F}, 
+function mark_dominated!{F}(newfacets::Vector{F}, removedfacets::Vector{F}, hull::ConicHull{F}, 
                             generator::Generator, facet::F)
     if ismarked(hull, facet); return true; end
     if antidominates(generator, facet); return false; end
 
-    mark!(hull, facet)
+    mark_facet!(hull, facet)
+    push!(removedfacets, facet)
     for (face, nb) in zip(facesof(facet), facet.links)
-        if !mark_dominated!(newfacets, hull, generator, nb)
+        if !mark_dominated!(newfacets, removedfacets, hull, generator, nb)
             # Found border: facet is (weakly) dominated but not nb
             newfacet = add_facet!(hull, face, generator)
+            mark_facet!(hull, newfacet)
             set_opposite!(newfacet, nb, generator)
             replace_link!(nb, newfacet, facet)
             push!(newfacets, newfacet)
@@ -91,11 +90,12 @@ function add!{F,G}(hull::ConicHull{F,G}, generator::G)
 
     push!(hull.generators, generator)
 
-    newfacets = F[]
-    mark_dominated!(newfacets, hull, generator, dominated)
+    newfacets, removedfacets = F[], F[]
+    mark_dominated!(newfacets, removedfacets, hull, generator, dominated)
     
+    for facet in removedfacets; del_facet!(hull, facet); end
     for facet in newfacets; create_links!(hull, facet, generator); end
-    for facet in newfacets; push!(hull.facets, facet); end
+    for facet in newfacets; mark_facet!(hull, facet, false); end
 
     return generator
 end

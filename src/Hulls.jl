@@ -7,7 +7,7 @@ using ..Dets
 using ..Verify
 import ..Common: nconic, gtype, get_canonical_winding, indexof
 import ..Common: dot, set_opposite!, replace_link!, opposite
-import ..Common.add_facet!
+import ..Common: add_facet!, del_facet!, mark_facet!, ismarked
 
 
 # --------------------------------- AFacet -----------------------------------
@@ -85,6 +85,7 @@ type ConicHull{F<:AFacet,G<:Generator} <: Hull
     nc::Int
     generators::Vector{G}
     facets::Set{F}
+    marked::Set{F}
 
 #    ConicHull() = (@assert nconic(F) == nconic(G); new())
     ConicHull(nc::Int) = new(nc)
@@ -98,6 +99,7 @@ end
 function init_hull!{F,G}(hull::ConicHull{F,G}, generators, facets)
     hull.generators = G[generators...]
     hull.facets = Set{F}(facets)
+    hull.marked = Set{F}()
 end
 
 hulltype{G<:Generator}(::Type{G}) = ConicHull{AFacet{G},G}
@@ -112,10 +114,15 @@ nconic(hull::ConicHull) = hull.nc
 
 function add_facet!(h::ConicHull, face::Face, g::Generator)
     f = AFacet(face, g)
-    # push!(h.facets, f) # todo: add in when it doesn't signify marked status anymore
+    push!(h.facets, f) # todo: add in when it doesn't signify marked status anymore
     f
 end
-
+del_facet!(h::ConicHull, facet::Facet) = (pop!(h.facets, facet); nothing)
+function mark_facet!(h::ConicHull, facet::Facet, mark::Bool)
+    mark ? push!(h.marked, facet) : delete!(h.marked, facet)
+    nothing
+end
+ismarked(h::ConicHull, facet::Facet) = facet in h.marked
 
 function verify(hull::ConicHull)
     NF = nfacet(hull)
